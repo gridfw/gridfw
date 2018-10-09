@@ -37,8 +37,14 @@ exports.settings=
 		value: 0 # arbitrary port
 		check: (value)->
 			throw new Error 'Listening port expected positive integer' unless Number.isSafeInteger(value) and value >= 0
-
-
+	protocol:
+		value: 'http'
+		check: (value)->
+			throw new Error 'protocol expected string' unless typeof value is 'string'
+	path:
+		value: '/'
+		check: (value)->
+			throw new Error 'path expected string' unless typeof value is 'string'
 	####<========================== LOG =============================>####
 	###*
 	 * log level

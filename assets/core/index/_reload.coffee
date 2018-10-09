@@ -52,7 +52,7 @@ Object.defineProperties GridFW.prototype,
 				reloadPromise = reloadPromise.finally =>
 					_reloadApp this, options
 		else
-			reloadPromise = _reloadApp this, options
+			reloadPromise = _reloadApp this, options || reloadPrevOptions
 		# clear flags when finished
 		unless reloadPromise is @[APP_STARTING_PROMISE]
 			reloadPromise = reloadPromise

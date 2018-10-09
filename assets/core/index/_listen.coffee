@@ -13,15 +13,20 @@
 GridFW::listen= (options)->
 	# waiting for app to be loaded
 	await @[APP_STARTING_PROMISE]
+	appSettings = @s
 	# check options
 	unless options
 		options = {}
 	else if typeof options is 'number'
 		options= port: options
-	else if typeof options isnt 'object'
+	else if typeof options is 'object'
+		throw new Error 'Option.port expected positive integer' unless Number.isSafeInteger(options.port) and options.port >= 0
+	else
 		throw new Error 'Illegal argument'
+	options.port ?= appSettings[<%= settings.port %>]
+	options.protocol ?= appSettings[<%= settings.protocol %>]
 	# get server factory
-	protocol = options.protocol || DEFAULT_PROTOCOL
+	protocol = options.protocol
 	throw new Error "Protocol expected string" unless typeof protocol is 'string'
 	protocol = protocol.toLowerCase()
 	servFacto = SERVER_LISTENING_PROTOCOLS[protocol]
