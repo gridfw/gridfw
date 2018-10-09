@@ -32,6 +32,13 @@ exports.settings=
 		check: (value)->
 			throw new Error 'Email expected string' unless typeof value is 'string'
 
+	####<========================== LISTENING =======================>####
+	port: 
+		value: 0 # arbitrary port
+		check: (value)->
+			throw new Error 'Listening port expected positive integer' unless Number.isSafeInteger(value) and value >= 0
+
+
 	####<========================== LOG =============================>####
 	###*
 	 * log level
@@ -40,7 +47,7 @@ exports.settings=
 	logLevel:
 		value: 'debug'
 		default: (app, mode)->
-			if mode is 0 then 'debug' else 'info'
+			if mode is 'dev' then 'debug' else 'info'
 		check: (level)->
 			accepted = ['debug', 'log', 'info', 'warn', 'error', 'fatalError']
 			throw new Error "level expected in #{accepted.join ','}" unless level in accepted
@@ -90,7 +97,7 @@ exports.settings=
 	###
 	pretty:
 		value: on # true if dev mode
-		default: (app, mode)-> mode is 0
+		default: (app, mode)-> mode is 'dev'
 		check: (value)->
 			throw new Error 'pretty expected boolean' unless typeof fx is 'boolean'
 	###*
@@ -123,7 +130,7 @@ exports.settings=
 	viewCache:
 		value: on
 		default: (app, mode) ->
-			mode isnt 0 # false if dev mode
+			mode isnt 'dev' # false if dev mode
 		check: (value)->
 			throw new Error 'viewCache expected boolean' unless typeof value is 'boolean'
 	viewCacheMax:
@@ -144,7 +151,7 @@ exports.settings=
 		value: null
 		default: (app, mode)->
 			# dev mode
-			if mode is 0
+			if mode is 'dev'
 				'404': path.join __dirname, '../../build/views/errors/d404'
 				'500': path.join __dirname, '../../build/views/errors/d500'
 			# prod mode

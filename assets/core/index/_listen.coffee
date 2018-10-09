@@ -11,26 +11,27 @@
  * 		protocol: 'http' or 'https' or 'http2'
 ###
 GridFW::listen= (options)->
-	new Promise (res, rej)=>
-		# options
-		unless options
-			options = {}
-		else if typeof options is 'number'
-			options= port: options
-		else if typeof options isnt 'object'
-			throw new Error 'Illegal argument'
-		# get server factory
-		protocol = options.protocol || DEFAULT_PROTOCOL
-		throw new Error "Protocol expected string" unless typeof protocol is 'string'
-		protocol = protocol.toLowerCase()
-		servFacto = SERVER_LISTENING_PROTOCOLS[protocol]
-		throw new Error "Unsupported protocol: #{options.protocol}" unless servFacto
-		# create server
-		server = servFacto options, this
-
-		# listen options
-		listenOptions = if typeof options.port is 'number' then options.port else {}
-		# run listener
+	# waiting for app to be loaded
+	await @[APP_STARTING_PROMISE]
+	# check options
+	unless options
+		options = {}
+	else if typeof options is 'number'
+		options= port: options
+	else if typeof options isnt 'object'
+		throw new Error 'Illegal argument'
+	# get server factory
+	protocol = options.protocol || DEFAULT_PROTOCOL
+	throw new Error "Protocol expected string" unless typeof protocol is 'string'
+	protocol = protocol.toLowerCase()
+	servFacto = SERVER_LISTENING_PROTOCOLS[protocol]
+	throw new Error "Unsupported protocol: #{options.protocol}" unless servFacto
+	# create server
+	server = servFacto options, this
+	# listen options
+	listenOptions = if typeof options.port is 'number' then options.port else {}
+	# run listener
+	await new Promise (res, rej)=>
 		server.listen listenOptions, (err)=>
 			if err
 				rej err
@@ -53,6 +54,10 @@ GridFW::listen= (options)->
 					res this
 				catch e
 					rej e
+	# enable the app
+	await @enable()
+	# ends
+	return
 				
 
 
@@ -63,5 +68,5 @@ SERVER_LISTENING_PROTOCOLS=
 		http.createServer
 			IncomingMessage : app.Request
 			ServerResponse : app.Context
-			,
-			app.handle.bind app
+			# ,
+			# app.handle.bind app

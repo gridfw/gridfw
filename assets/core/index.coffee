@@ -48,6 +48,7 @@ IS_ENABLED				= Symbol 'is enabled'
 IS_LOADED				= Symbol 'is loaded' # is app loaded (all settings are set)
 APP_STARTING_PROMISE	= Symbol 'app starting promise' # loading promise
 REQ_HANDLER				= Symbol 'request handler'
+APP_OPTIONS				= Symbol 'App starting options' # used as flag for @reload
 
 
 # default used protocol when non specified, in [http, https, http2]
@@ -85,6 +86,7 @@ class GridFW
 			[IS_ENABLED]: UNDEFINED
 			[IS_LOADED]: UNDEFINED
 			[APP_STARTING_PROMISE]: UNDEFINED
+			[APP_OPTIONS]: UNDEFINED
 			# mode
 			mode: get: -> @s[<%=settings.mode %>]
 			### App connection ###
@@ -121,9 +123,12 @@ class GridFW
 		process.on 'beforeExit', exitCb
 		# run load app
 		@reload options
-		.catch (err) => @fatalError 'CORE', err
-		# print welcome message
-		_console_welcome this
+		.then =>
+			# print welcome message
+			_console_welcome this
+		.catch (err) =>
+			@fatalError 'CORE', err
+			process.exit()
 		return
 
 

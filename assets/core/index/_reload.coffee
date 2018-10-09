@@ -43,18 +43,31 @@ Object.defineProperties GridFW.prototype,
 	 * @optional @param  {object} options - new options
 	###
 	reload: value: (options)->
-		if @[APP_STARTING_PROMISE]
-			await @[APP_STARTING_PROMISE]
+		reloadPromise = @[APP_STARTING_PROMISE]
+		reloadPrevOptions = @[APP_OPTIONS]
+		@[APP_OPTIONS] = options # flag for next "reload"
+		if reloadPromise
+			if options and options isnt reloadPrevOptions
+				# reload app again when previous reload finished
+				reloadPromise = reloadPromise.finally =>
+					_reloadApp this, options
 		else
-			@[APP_STARTING_PROMISE] = _reloadApp this, options
-			.then =>
-				@[APP_STARTING_PROMISE] = null
-				@[IS_LOADED] = true
-		return @[APP_STARTING_PROMISE]
+			reloadPromise = _reloadApp this, options
+		# clear flags when finished
+		unless reloadPromise is @[APP_STARTING_PROMISE]
+			reloadPromise = reloadPromise
+				.then =>
+					@[IS_LOADED] = true
+				.finally =>
+					@[APP_STARTING_PROMISE] = null
+			# save promise for next call
+			@[APP_STARTING_PROMISE] = reloadPromise
+		# return promise
+		reloadPromise
 
 ### Reload app###
 _reloadApp = (app, options)->
-	app.info 'CORE', "Reload app: #{app.name}"
+	app.info 'CORE', "Reload app: #{app.name}" if app[IS_LOADED]
 	appSettings = app.s
 	# reload settings
 	await _reloadSettings app, options
@@ -88,17 +101,17 @@ _reloadApp = (app, options)->
 _reloadSettings = (app, options)->
 	# load options from file
 	unless options
+		options = path.join process.cwd() , 'gridfw-config'
 		try
-			options = path.join process.cwd , 'gridfw-config'
 			options = require options
 		catch err
-			app.warn 'CORE', "Could not find config file at: #{options}\n", err
+			app.warn 'CORE', "Could not find config file at: #{options}.[js or json]"
 			options = null
 	else if typeof options is 'string'
 		try
 			options = require options
 		catch err
-			app.error 'CORE', "Could not find config file at: #{options}\n", err
+			app.error 'CORE', "Could not find config file at: #{options}"
 			throw err
 	# load default settings
 	appSettings = app.s

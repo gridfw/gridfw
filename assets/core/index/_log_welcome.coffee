@@ -1,4 +1,3 @@
-console.log 'require fw'
 # show welcome message if called directly
 if require.main is module
 	console.error "GridFW>>\tCould not be self run, See @Doc for more info, or run example"

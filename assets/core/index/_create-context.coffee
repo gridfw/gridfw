@@ -10,7 +10,6 @@ _createContext = (app)->
 	# context
 	class AppContext extends http.ServerResponse
 		constructor: (socket)->
-			console.log 'create context'
 			super socket
 			# locals
 			locals = Object.create appLocals,

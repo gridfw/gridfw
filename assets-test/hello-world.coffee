@@ -3,10 +3,11 @@ Hello world
 ###
 
 GridFw = require '..'
+path = require 'path'
 # GridMonit = require '../../gridfw-monitor'
 
 # create server
-app = new GridFw()
+app = new GridFw path.join __dirname, 'gridfw-config.js'
 
 # add plugin
 # app.plugin GridMonit()

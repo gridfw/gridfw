@@ -111,6 +111,10 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 	# prevent "?" symbol and multiple successive slashes
 	throw new Error "Incorrect route: #{route}" if /^\?|\/\?[^:*]|\/\//.test route
 
+	# wait for app to load if not yeat loaded
+	# <!> do not remove "if" to enable sync when app is already loaded
+	await app[APP_STARTING_PROMISE] if app[APP_STARTING_PROMISE]
+
 	# settings
 	settings = app.s
 	# remove trailingSlash from route
@@ -131,7 +135,7 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 		if nodeAttrs.c
 			# controller to all route
 			if route is '/*'
-				app.warn 'ROUTER', "[!] Add universal \"#{method} \\*\" will hide other routes"
+				app.warn 'RTER', "[!] Add universal \"#{method} \\*\" will hide other routes"
 				routeMapper = allRoutes['/?*'] = app.m
 			else
 				# lowercase and encode static parts
@@ -143,7 +147,7 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 				unless routeMapper
 					routeMapper= allRoutes[routeKey] = new RouteMapper app, route
 				# add handlers to route
-				app.debug 'ROUTER', 'Add dynamic route: ', method, route
+				app.debug 'RTER', 'Add dynamic route: ', method, route
 				routeMapper.append method, nodeAttrs
 				# map dynamic route
 				mapper = _linkDynamicRoute app, route
@@ -168,7 +172,7 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 		routeMapper.append method, nodeAttrs
 		# map as static route if has controller
 		if nodeAttrs.c
-			app.debug 'ROUTER', 'Add static route: ', method, routeKey
+			app.debug 'RTER', 'Add static route: ', method, routeKey
 			app[STATIC_ROUTES][routeKey] = routeMapper
 	# ends
 	return
