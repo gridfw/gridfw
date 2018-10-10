@@ -70,7 +70,7 @@ _resolveRoute = do ->
 						params = filteredNodes1[++i]
 						++i
 
-						# next step
-						i += filterNodeStep
+						# next static node
+						nextNode = node[staticPart]
 
 
