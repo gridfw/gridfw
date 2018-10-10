@@ -122,10 +122,12 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 		route = route.slice 0, -1 if route.endsWith '/'
 	# route mast starts width "/"
 	route = '/' + route unless route.startsWith '/'
+	# replace "*"
+	route = route[0...-1] + ':*' if route.endsWith '/*'
 	# check if it is a static or dynamic route
 	isDynamic = /\/:|\*$/.test route
 	# route key
-	routeKey = if isDynamic then route.replace(/([:*])/g, '?$1') else 
+	routeKey = if isDynamic then route.replace(/\/:/g, '/?:') else 
 	# get some already created node if exists
 	allRoutes = app[ALL_ROUTES]
 	ignoreCase = settings[<%= settings.routeIgnoreCase %>]
@@ -133,26 +135,21 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 	if isDynamic
 		# if has controller, create the route
 		if nodeAttrs.c
-			# controller to all route
-			if route is '/*'
-				app.warn 'RTER', "[!] Add universal \"#{method} \\*\" will hide other routes"
-				routeMapper = allRoutes['/?*'] = app.m
-			else
-				# lowercase and encode static parts
-				route = route.replace /\/([^:][^\/]*)/g, (v)->
-					v = v.toLowerCase() if ignoreCase
-					encodeurl v
-				# create mapper if not exists
-				routeMapper = allRoutes[routeKey]
-				unless routeMapper
-					routeMapper= allRoutes[routeKey] = new RouteMapper app, route
-				# add handlers to route
-				app.debug 'RTER', 'Add dynamic route: ', method, route
-				routeMapper.append method, nodeAttrs
-				# map dynamic route
-				mapper = _linkDynamicRoute app, route
-				throw new Error "Dynamic mapper already set to: #{method} #{route}" if mapper.$
-				mapper.$$ = routeMapper
+			# lowercase and encode static parts
+			route = route.replace /\/([^:][^\/]*)/g, (v)->
+				v = v.toLowerCase() if ignoreCase
+				encodeurl v
+			# create mapper if not exists
+			routeMapper = allRoutes[routeKey]
+			unless routeMapper
+				routeMapper= allRoutes[routeKey] = new RouteMapper app, route
+			# add handlers to route
+			app.debug 'RTER', 'Add dynamic route: ', method, route
+			routeMapper.append method, nodeAttrs
+			# map dynamic route
+			mapper = _linkDynamicRoute app, route
+			throw new Error "Dynamic mapper already set to: #{method} #{route}" if mapper.$
+			mapper.$$ = routeMapper
 		# else add handler to any route or future route that matches
 		else
 			@_registerRouteHandlers app, route, nodeAttrs
@@ -180,6 +177,12 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 
 ###*
  * link dynamic route
+ * @node_format
+ * {
+ * 		['/...'] static nodes stats with '/'
+ * 		$: params are contained inside $ object
+ * 		$$: contains the mapper for this route
+ * }
 ###
 _linkDynamicRouteParamSet = new Set() # reuse this for performance purpose
 _linkDynamicRoute = (app, route)->
@@ -189,19 +192,34 @@ _linkDynamicRoute = (app, route)->
 	_linkDynamicRouteParamSet.clear()
 	# exec
 	currentNode = app[DYNAMIC_ROUTES]
-	for part in route.split /(?=\/)/
+	parts = route.split /(?=\/)/
+	partslastIndex = parts.length - 1
+	for part, i in parts
+		console.log '---- part: ', part
 		# if param
 		if part.startsWith '/:'
 			part = part.substr 2
+			isRestOf = false # if this param will contains all the reste of the path
+			# is param ends with *: get all text after the last '/'
+			if part.endsWith '*'
+				throw new Error '"*" Could be used on the lastest param only!' if i isnt partslastIndex
+				part = part[0...-1] if part isnt '*'
+				isRestOf = true
 			# check param is correct
 			throw new Error 'Could not use "__proto__" as param name' if part is '__proto__'
-			throw new Error "Param names mast matche [a-zA-Z0-9_-]. Illegal param: [#{part}] at route: #{route}" unless ROUTE_PARAM_MATCH.test part
+			throw new Error "Param names mast matche [a-zA-Z0-9_-]. Illegal param: [#{part}] at route: #{route}" unless part is '*' or ROUTE_PARAM_MATCH.test part
 			# uniqueness of param name
 			throw new Error "Dupplicated param name: #{part}" if _linkDynamicRouteParamSet.has part
 			_linkDynamicRouteParamSet.add part
 			# var
-			currentNode.$ ?= Object.create null
-			currentNode = currentNode.$[part] ?= Object.create null
+			if isRestOf
+				console.log '--- is reste of'
+				currentNode['*'] ?= Object.create null
+				currentNode = currentNode['*'][part] ?= Object.create null
+			else
+				console.log '--- not reste of: ', part
+				currentNode.$ ?= Object.create null
+				currentNode = currentNode.$[part] ?= Object.create null
 		# if static part
 		else
 			part = part.toLowerCase() if convLowerCase

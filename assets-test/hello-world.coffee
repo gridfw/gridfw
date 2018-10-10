@@ -48,6 +48,11 @@ app.get '/builder/:mm/:p'
 		ctx.send 'builder works'
 
 
+app.get '/asterix/*', (ctx)->
+	ctx.info 'asterix', 'hello khalid'
+	ctx.send 'hello khalid'
+
+
 # run the server at port 3000
 app.listen 3000
 	.then -> app.log 'Main', "Server listening At: #{app.port}"

@@ -121,7 +121,8 @@ exports.settings=
 	 * inside the app and not the compiler
 	###
 	engines:
-		value: (app, mode)->
+		value: {}
+		default: (app, mode)->
 			engines = Object.create null
 			engines['.pug'] = require 'pug'
 			return engines

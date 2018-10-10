@@ -32,13 +32,13 @@ CONTEXT_PROTO=
 		@setHeader 'location', encodeurl url
 		#TODO add some response (depending on "accept" header: text, html, json, ...)
 		# status code
-		@statusCode if isPermanent then 302 else 301
+		@statusCode = if isPermanent then 302 else 301
 		# end request
 		@end()
 	###*
 	 * Permanent redirect to this URL
 	###
-	redirectPermanent: (url)-> @redirect url, true
+	permanentRedirect: (url)-> @redirect url, true
 	###*
 	 * Redirect back (go back to referer)
 	###

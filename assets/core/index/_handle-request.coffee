@@ -202,22 +202,23 @@ _resolveRoute= (app, method, route)->
 				# break if no more nodes
 				unless _resolveRouteA2.length
 					throw ERROR_404
-			# filter nodes ising method and using params regexes
+			# filter nodes missing method and using params regexes
 			# [node, params]
 			_resolveRouteA1.length = 0
 			`R: //`
 			for nodeArr in _resolveRouteA2
 				routeMapper = nodeArr[0].$$
-				# get Method
-				node = routeMapper[method] or (method is 'HEAD' and routeMapper.GET) or routeMapper.ALL
-				continue unless node
-				# go through params
-				for k, v of nodeArr[1]
-					p = node.$[k]
-					if p and not p[0].test v
-						`continue R`
-				nodeArr[0] = node
-				_resolveRouteA1.push nodeArr
+				if routeMapper
+					# get Method
+					node = routeMapper[method] or (method is 'HEAD' and routeMapper.GET) or routeMapper.ALL
+					continue unless node
+					# go through params
+					for k, v of nodeArr[1]
+						p = node.$[k]
+						if p and not p[0].test v
+							`continue R`
+					nodeArr[0] = node
+					_resolveRouteA1.push nodeArr
 			# throw 404 if all nodes are filtered
 			throw ERROR_404 unless _resolveRouteA1.length
 			# throw errors if there is more then one node resolved

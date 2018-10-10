@@ -12,3 +12,5 @@ do ->
 	#=include _add_routes-builder.coffee
 	#=include _register-route-handlers.coffee
 	#=include _app-wrappers.coffee
+
+#=include _resolve-route.coffee
