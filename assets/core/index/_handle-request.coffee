@@ -185,7 +185,6 @@ _resolveRoute= (app, method, route)->
 						nodeArr[0] = nextNode
 						_resolveRouteA2.push nodeArr
 					# check for dynamic part
-					#TODO check if we could optimize this
 					else if node.$
 						ref = node.$
 						kies = Object.keys ref
@@ -199,6 +198,8 @@ _resolveRoute= (app, method, route)->
 								p = Object.create nodeArr[1]
 								p[k] = part
 								_resolveRouteA2.push [v, p]
+					# check for universal params matchers
+					
 				# break if no more nodes
 				unless _resolveRouteA2.length
 					throw ERROR_404
