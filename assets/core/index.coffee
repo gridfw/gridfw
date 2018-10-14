@@ -111,7 +111,7 @@ class GridFW
 			[STATIC_ROUTES]: value: Object.create null
 			[DYNAMIC_ROUTES]: value: Object.create null
 			#TODO check if app cache optimise performance for 20 routes
-			# [CACHED_ROUTES]:
+			[CACHED_ROUTES]: value: Object.create null
 			# plugins
 			[PLUGINS]: value: Object.create null
 		# create context

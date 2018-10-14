@@ -31,7 +31,7 @@
     "create-symlink": "^1.0.0",
     "encodeurl": "^1.0.2",
     "fast-decode-uri-component": "^1.0.0",
-      "gridfw-logger": "^0.0.4",
+    "gridfw-logger": "^0.0.4",
     "gulp-template": "^5.0.0",
     "lru-cache": "^4.1.3",
     "mime-types": "^2.1.20",
