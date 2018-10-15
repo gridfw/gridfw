@@ -44,10 +44,10 @@ Object.defineProperties GridFW.prototype,
 				else if ref is off
 					rawPath = rawPath.slice 0, -1 if rawPath.endsWith '/'
 			# get route mapper
+			# [_cacheLRU, node, param1Name, param1Value, ...]
 			routeDescriptor = _resolveRoute this, method, rawPath
-			routeNode= routeDescriptor[0]
-			rawParams = routeDescriptor[1]
-			params = Object.create rawParams
+			routeNode = routeDescriptor[1]
+			params = Object.create null
 			routeParamResolvers = routeNode.$
 			# parse query params
 			rawUrlQuery = @queryParser rawUrlQuery
@@ -59,14 +59,21 @@ Object.defineProperties GridFW.prototype,
 				rawQuery: value: rawUrlQuery
 				query: value: queryParams
 				# params
-				rawParams: value: rawParams
 				params: value: params
 			# resolve params
-			if rawParams and routeParamResolvers
-				for k, v of rawParams
-					ref = routeParamResolvers[k]
+			if routeParamResolvers
+				rawPI = 2
+				rawPLen = routeDescriptor.length
+				while rawPI < rawPLen
+					paramName = routeDescriptor[rawPI]
+					paramValue= routeDescriptor[++rawPI]
+					++rawPI
+					# resolve
+					ref = routeParamResolvers[paramName]
 					if ref and typeof ref[1] is 'function'
-						params[k] = await ref[1] ctx, v, <%= app.PATH_PARAM %>
+						params[paramName] = await ref[1] ctx, paramValue, <%= app.PATH_PARAM %>
+					else
+						params[paramName] = paramValue
 			# resolve query params
 			if rawUrlQuery and routeParamResolvers
 				for k, v of queryParams

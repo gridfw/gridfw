@@ -9,60 +9,63 @@ _resolveRoute = do ->
 	# [0]: node
 	# [1]: rawParams
 	resolvedRoute = []
-	paramStack  = [] # store params as [paramName, paramValue, ...]
 	nextParamNodes	= [] # store condidate nodes as [node, level, paramName, paramlevel, ...]
 	wildCardStack  = [] # store routes with wildcard as [node, level, paramName, paramLevel, ...]
 	# 404 Error node (enable caching)
 	err404Node =
 		c: ->
-			throw ERROR_404 
+			throw ERROR_404
+	# append nodes to wildcard stack
+	_addWildcard = (nodeWildCards, currentPosition, resolvedRoute)->
+		for k, v of nodeWildCards
+			lst = resolvedRoute.slice 0
+			lst.push k
+			wildCardStack.push v, currentPosition, lst
+		return
+	# check regexes
+	_paramRegexCheck = (currentNode, method, paramStackLen)->
+		node = null
+		if ( routeMapper = currentNode.m ) and
+		( node = routeMapper[method] or (method is 'HEAD' and routeMapper.GET) or routeMapper.ALL )
+			nodeParams = node.$
+			idx = 1
+			while idx < paramStackLen
+				# get param info
+				paramName = resolvedRoute[idx]
+				paramValue = resolvedRoute[++idx]
+				++idx
+				# check param with regex
+				t = nodeParams[paramName]
+				if t and not t[0].test paramValue
+					node = null
+					break # test fails
+		node
 	# resolve dynamic route
 	_resolveDynamicRoute = (app, method, route, ignoreCase)->
-		console.log '::::: Resolve dynamic route>> ', route
+		resolvedRoute= [1, err404Node]
 		# init
 		currentNode = app[DYNAMIC_ROUTES]
-		paramStack.length = 0
 		wildCardStack.length = 0
 		nextParamNodes.length = 0
 		# 
 		parts = route.split '/'
 		i = 0
-		paramIdx = 0
+		paramIdx = 2
 		len = parts.length
 		routeNode = null # final resolved route node
 		# go to param level
 		_goToParamLevel = =>
-			console.log '-------- GO TO NEXT NODE --------'
 			paramIdx = nextParamNodes.pop()
 			pName = nextParamNodes.pop()
 			i = nextParamNodes.pop()
 			currentNode = nextParamNodes.pop()
 			# param stack
-			paramStack.splice paramIdx
-			# paramIdx = paramStack.length
-			paramStack.push pName, parts[i]
-			paramIdx = paramStack.length
+			resolvedRoute.splice paramIdx
+			resolvedRoute.push pName, parts[i]
+			paramIdx = resolvedRoute.length
 			# go to next element
 			++i
-		# check params with regex
-		_paramRegexCheck = (currentNode, paramStackLen)->
-			node = null
-			if ( routeMapper = currentNode.m ) and
-			( node = routeMapper[method] or (method is 'HEAD' and routeMapper.GET) or routeMapper.ALL )
-				# paramStackLen = paramStack.length
-				nodeParams = node.$
-				idx = 0
-				while idx < paramStackLen
-					# get param info
-					paramName = paramStack[idx]
-					paramValue = paramStack[++idx]
-					++idx
-					# check param with regex
-					t = nodeParams[paramName]
-					if t and not t[0].test paramValue
-						node = null
-						break # test fails
-			node
+			return
 		# loop
 		loop
 			# seek for path
@@ -86,10 +89,7 @@ _resolveRoute = do ->
 						nextParamNodes.push v, currentPosition, k, paramIdx
 				# add wildcard params
 				if currentNode['*']
-					for k, v of currentNode['*']
-						lst = paramStack.slice 0
-						lst.push k
-						wildCardStack.push v, currentPosition, lst
+					_addWildcard currentNode['*'], currentPosition, resolvedRoute
 				# go to next node
 				if nextParamNodes.length
 					_goToParamLevel()
@@ -97,22 +97,23 @@ _resolveRoute = do ->
 					currentNode = null # fail to get route
 					break
 			# check params with regexes if resolved
-			if currentNode and routeNode = _paramRegexCheck currentNode, paramStack.length
+			if currentNode and routeNode = _paramRegexCheck currentNode, method, resolvedRoute.length
 				break # break loop if regexes succeed
+			# if last current node has wildcard
+			if currentNode and currentNode['*']
+				_addWildcard currentNode['*'], i, resolvedRoute
 			# if regex test fails or no node resolved, check an other track
 			# go to next param track
 			if nextParamNodes.length
 				_goToParamLevel()
 			# use a wild card path
 			else if wildCardStack.length
-				console.log '----- look for longest wildcard path'
 				# get longest that matches regexes
 				idx = 0
 				len = wildCardStack.length
 				longestLevel = 0 # store longest level
 				longestParamLevel = 0 # store longest level
 				while idx < len
-					console.log '--- wild loop'
 					# resolve values
 					currentNode	= wildCardStack[idx]
 					i			= wildCardStack[++idx]
@@ -122,15 +123,15 @@ _resolveRoute = do ->
 					if i <= longestLevel
 						continue
 					# use regex
-					if currentNode and node = _paramRegexCheck currentNode, i
+					if currentNode and node = _paramRegexCheck currentNode, method, i
 						longestLevel = i
 						longestParamStack = pStack
 						routeNode = node
 						break # break loop if regexes succeed
 				# concat last params
 				if routeNode
-					paramStack = longestParamStack
-					paramStack.push parts.slice(longestLevel).join '/'
+					resolvedRoute = longestParamStack
+					resolvedRoute.push parts.slice(longestLevel).join '/'
 				# break loop
 				break
 			# 404 not found
@@ -139,31 +140,23 @@ _resolveRoute = do ->
 				break
 		# return node
 		if routeNode
-			console.log '--- route resolved'
-			resolvedRoute[0] = routeNode
-			# save params
-			rawParams = resolvedRoute[1]
-			len = paramStack.length
-			i = 0
-			while i < len
-				rawParams[ paramStack[i] ] = paramStack[++i]
-				++i
-		else
-			console.log '--- route not found'
-			resolvedRoute[0] = err404Node
+			resolvedRoute[1] = routeNode
 		# end
-		return
+		return resolvedRoute
 	# return resolver
 	(app, method, route)->
-		# node
-		resolvedRoute[0] = err404Node
+		# response
+		# [_cacheLRU, node, param1Name, param1Value, ...]
+		# resolvedRoute
 		# params
-		rawParams = resolvedRoute[1] = Object.create null
+		# rawParams = resolvedRoute[1] = Object.create null
 		# root node
 		if route is '/'
 			node = app.m[method]
 			if node or ( method is 'HEAD' and (node = app.m.GET)) or (node = app.m.ALL)
-				resolvedRoute[0] = node
+				resolvedRoute = [1, node]
+			else
+				resolvedRoute = [1, err404Node]
 		# child node
 		else
 			settings = app.s
@@ -185,15 +178,17 @@ _resolveRoute = do ->
 			routeMapper = app[STATIC_ROUTES][staticRoute]
 			### when not static route, look for dynamic one ###
 			if routeMapper and (node = routeMapper[method] or (method is 'HEAD' and (node = routeMapper.GET)) or (node=routeMapper.ALL) )
-				resolvedRoute[0] = node
+				resolvedRoute = [1, node]
 			# cache logic
-			# <!> enable this cache!!!
-			# else if (node = app[CACHED_ROUTES][route])
-			# 	resolvedRoute[0] = node[0] # node
-			# 	resolvedRoute[1] = node[1] # params
-			# 	++node[2] # inc access count (to remove less access)
+			else if (node = app[CACHED_ROUTES][route])
+				console.log '---- get route from cache: ', route
+				++node[0] # inc access count (to remove less access)
+				resolvedRoute = node # node
 			# resolve dynamic route
 			else
-				_resolveDynamicRoute app, method, route, ignoreCase
+				resolvedRoute = _resolveDynamicRoute app, method, route, ignoreCase
+				# add route to cache
+				app[CACHED_ROUTES][route] = resolvedRoute
 		# return resolved route
+		# [_cacheLRU, node, param1Name, param1Value, ...]
 		resolvedRoute

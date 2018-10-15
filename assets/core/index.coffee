@@ -40,8 +40,11 @@ VIEW_CACHE = Symbol 'View cache'
 ALL_ROUTES	= Symbol 'All routes'
 STATIC_ROUTES	= Symbol 'Static routes'
 DYNAMIC_ROUTES	= Symbol 'Dynamic routes'
-CACHED_ROUTES	= Symbol 'Cached_routes'
 PLUGINS			= Symbol 'Plugins'
+
+# caching routes
+CACHED_ROUTES		= Symbol 'Cached_routes'
+ROUTE_CACHE_INTERVAL= Symbol 'Route cache interval'
 
 # flags
 IS_ENABLED				= Symbol 'is enabled'
@@ -126,6 +129,8 @@ class GridFW
 		.then =>
 			# print welcome message
 			_console_welcome this
+			# start cache cleaner
+			_routeCacheStart this
 		.catch (err) =>
 			@fatalError 'CORE', err
 			process.exit()
@@ -166,6 +171,7 @@ loggerFactory CONTEXT_PROTO, level: 'debug'
 #=include index/_query-parser.coffee
 #=include index/_plugin.coffee
 #=include index/_reload.coffee
+#=include index/_route-cache-manager.coffee
 
 # exports
 module.exports = GridFW
