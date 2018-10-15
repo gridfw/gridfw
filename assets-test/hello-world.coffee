@@ -28,7 +28,11 @@ app.get '/hello world', (ctx)->
 
 # dynamic route
 app.get '/test/:var/:var2', (ctx)->
-	console.log '--- gotin'
+	console.log '--- params: ', Object.getOwnPropertyDescriptors ctx.params
+	console.log '--- params: ', Object.getPrototypeOf ctx.params
+	console.log '--- params: ', JSON.stringify ctx.params
+	console.log '--- paramssss: ', ctx.params.var
+	console.log '--- raw params: ', ctx.rawParams
 	ctx.send 'got great results'
 
 # dynamic route
@@ -43,12 +47,15 @@ app.get '/builder/:mm/:p'
 		ctx.debug 'myService', 'data: ', data
 		return 'ppppmmmm-----'
 	.then (ctx)->
+		console.log '--- raw params: ', ctx.rawParams
+		console.log '--- params: ', ctx.params
 		console.log '---- param[mm] ', ctx.params.mm
 		console.log '---- param[p] ', ctx.params.p
 		ctx.send 'builder works'
 
 
 app.get '/asterix/*', (ctx)->
+	console.log '--- raw params: ', ctx.rawParams
 	ctx.info 'asterix', 'hello khalid'
 	ctx.send 'hello khalid'
 

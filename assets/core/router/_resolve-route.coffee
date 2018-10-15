@@ -38,13 +38,32 @@ _resolveRoute = do ->
 			i = nextParamNodes.pop()
 			currentNode = nextParamNodes.pop()
 			# param stack
-			console.log '--- params: [', paramStack.join(', ') , ']'
-			console.log '----- splice params>> ', paramIdx
 			paramStack.splice paramIdx
 			# paramIdx = paramStack.length
-			console.log '----- push params>> ', pName, '=', parts[i]
 			paramStack.push pName, parts[i]
 			paramIdx = paramStack.length
+			# go to next element
+			++i
+		# check params with regex
+		_paramRegexCheck = (currentNode, paramStackLen)->
+			node = null
+			if ( routeMapper = currentNode.m ) and
+			( node = routeMapper[method] or (method is 'HEAD' and routeMapper.GET) or routeMapper.ALL )
+				# paramStackLen = paramStack.length
+				nodeParams = node.$
+				idx = 0
+				while idx < paramStackLen
+					# get param info
+					paramName = paramStack[idx]
+					paramValue = paramStack[++idx]
+					++idx
+					# check param with regex
+					t = nodeParams[paramName]
+					if t and not t[0].test paramValue
+						node = null
+						break # test fails
+			node
+		# loop
 		loop
 			# seek for path
 			while i < len
@@ -68,7 +87,9 @@ _resolveRoute = do ->
 				# add wildcard params
 				if currentNode['*']
 					for k, v of currentNode['*']
-						wildCardStack.push v, currentPosition, k, paramIdx
+						lst = paramStack.slice 0
+						lst.push k
+						wildCardStack.push v, currentPosition, lst
 				# go to next node
 				if nextParamNodes.length
 					_goToParamLevel()
@@ -76,28 +97,9 @@ _resolveRoute = do ->
 					currentNode = null # fail to get route
 					break
 			# check params with regexes if resolved
-			if currentNode and ( routeMapper = currentNode.m ) and
-			( routeNode = routeMapper[method] or (method is 'HEAD' and routeMapper.GET) or routeMapper.ALL )
-				console.log '---- check params with regexes'
-				paramStackLen = paramStack.length
-				nodeParams = routeNode.$
-				idx = 0
-				while idx < paramStackLen
-					# get param info
-					paramName = paramStack[i]
-					paramValue = paramStack[++i]
-					++i
-					# check param with regex
-					console.log '--- check ', paramName
-					t = nodeParams[paramName]
-					unless t and t.test paramValue
-						routeNode = null
-						break # test fails
-				# break loop if regexes succeed
-				break if routeNode
-					
+			if currentNode and routeNode = _paramRegexCheck currentNode, paramStack.length
+				break # break loop if regexes succeed
 			# if regex test fails or no node resolved, check an other track
-			console.log '---- path not resolved'
 			# go to next param track
 			if nextParamNodes.length
 				_goToParamLevel()
@@ -114,37 +116,21 @@ _resolveRoute = do ->
 					# resolve values
 					currentNode	= wildCardStack[idx]
 					i			= wildCardStack[++idx]
-					paramName	= wildCardStack[++idx]
-					paramLevel	= wildCardStack[++idx]
+					pStack	= wildCardStack[++idx]
 					++idx
 					# continue if this level less than the last resolved one
 					if i <= longestLevel
 						continue
 					# use regex
-					if currentNode and ( routeMapper = currentNode.m ) and
-					( node = routeMapper[method] or (method is 'HEAD' and routeMapper.GET) or routeMapper.ALL )
-						console.log '---- check wildcard with regexes'
-						nodeParams = node.$
-						j = 0
-						while j < i
-							# get param info
-							paramName = paramStack[j]
-							paramValue = paramStack[++j]
-							++j
-							# check param with regex
-							console.log '--- check ', paramName
-							t = nodeParams[paramName]
-							unless t and t.test paramValue
-								node = null
-								break # test fails
-						if node
-							longestLevel = i
-							longestParamLevel = paramLevel
-							routeNode = node
+					if currentNode and node = _paramRegexCheck currentNode, i
+						longestLevel = i
+						longestParamStack = pStack
+						routeNode = node
+						break # break loop if regexes succeed
 				# concat last params
 				if routeNode
-					paramStack.splice(longestParamLevel)
-					paramStack[longestParamLevel] = parts.slice(longestLevel).join '/'
+					paramStack = longestParamStack
+					paramStack.push parts.slice(longestLevel).join '/'
 				# break loop
 				break
 			# 404 not found
