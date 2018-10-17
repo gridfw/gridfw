@@ -129,51 +129,40 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 	# get some already created node if exists
 	allRoutes = app[ALL_ROUTES]
 	ignoreCase = settings[<%= settings.routeIgnoreCase %>]
-	# if dynamic route
+	# lowercase and encode static parts
 	if isDynamic
-		# if has controller, create the route
-		if nodeAttrs.c
-			# controller to all route
-			# if route is '/*'
-			# 	app.warn 'ROUTER', "[!] Add universal \"#{method} \\*\" will hide other routes"
-			# 	routeMapper = allRoutes['/?*'] = app.m
-			# else
-			# lowercase and encode static parts
-			route = route.replace /\/([^:][^\/]*)/g, (v)->
-				v = v.toLowerCase() if ignoreCase
-				encodeurl v
-			# create mapper if not exists
-			routeMapper = allRoutes[routeKey]
-			unless routeMapper
-				routeMapper= allRoutes[routeKey] = new RouteMapper app, route
-			# add handlers to route
-			app.debug 'ROUTER', 'Add dynamic route: ', method, route
-			routeMapper.append method, nodeAttrs
-			# map dynamic route
-			mapper = _linkDynamicRoute app, route
-			throw new Error "Dynamic mapper already set to: #{method} #{route}" if mapper.$$
-			mapper.m = routeMapper
-		# else add handler to any route or future route that matches
-		else
-			_registerRouteHandlers app, route, nodeAttrs
-	# if static route, create node even no controller is specified
+		route = route.replace /\/([^:][^\/]*)/g, (v)->
+			v = v.toLowerCase() if ignoreCase
+			encodeurl v
 	else
-		# convert route to lowercase unless case sensitive
-		route = route.toLowerCase() unless ignoreCase
-		# encode URL
+		route = route.toLowerCase() if ignoreCase
 		route = encodeurl route
-		# create route mapper if not exists
 		routeKey = route.replace /\/\?:/g, '/:'
-		routeMapper = allRoutes[routeKey]
+	# get or create route tree
+	mapper = _linkDynamicRoute app, route
+	# create route mapper if we got controller
+	if nodeAttrs.c
+		routeMapper= allRoutes[routeKey]
 		unless routeMapper
-			routeMapper= allRoutes[routeKey] =
-			if route is '/' then app.m else new RouteMapper app, route
-		# add handler to node
+			throw new Error "Route mapper already set to: #{method} #{route}" if mapper.m
+			# root route
+			if route is '/'
+				routeMapper = allRoutes[routeKey] = app.m
+			# subroute
+			else
+				routeMapper = allRoutes[routeKey] = new RouteMapper app, route
+			app.debug 'ROUTER', "Map the controller to #{method} #{route}"
+			mapper.m = routeMapper
+		# add controller
 		routeMapper.append method, nodeAttrs
-		# map as static route if has controller
-		if nodeAttrs.c
-			app.debug 'ROUTER', 'Add static route: ', method, routeKey
+
+		# Add static access to route if has controller
+		unless isDynamic
+			app.debug 'ROUTER', "Create static shortcut: #{method} #{routeKey}"
 			app[STATIC_ROUTES][routeKey] = routeMapper
+	# register handlers if no controller set
+	else
+		_registerRouteHandlers app, mapper, nodeAttrs
 	# ends
 	return
 
@@ -184,6 +173,7 @@ _createRouteNode = (app, method, route, nodeAttrs)->
  * node.$['param-name']
  * node['*']['wildcard-paramName']
  * node.m = NodeMapper # link to node mapper
+ * node.x = {handlers to be inhiret by sub routes}
 ###
 _linkDynamicRouteParamSet = new Set() # reuse this for performance purpose
 _linkDynamicRoute = (app, route)->

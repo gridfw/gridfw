@@ -45,6 +45,12 @@ exports.settings=
 		value: '/'
 		check: (value)->
 			throw new Error 'path expected string' unless typeof value is 'string'
+	# enable dev tools
+	devTools:
+		value: on
+		default: (app, mode)-> mode is 'dev'
+		check: (value)->
+			throw new Error 'Value expected boolean' unless typeof value is 'boolean'
 	####<========================== LOG =============================>####
 	###*
 	 * log level

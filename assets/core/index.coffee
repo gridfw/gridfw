@@ -131,6 +131,10 @@ class GridFW
 			_console_welcome this
 			# start cache cleaner
 			_routeCacheStart this
+			# add dev utilities
+			if @s[<%= settings.devTools %>]
+				require('../dev')(app)
+
 		.catch (err) =>
 			@fatalError 'CORE', err
 			process.exit()
