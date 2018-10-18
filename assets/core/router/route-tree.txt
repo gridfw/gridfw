@@ -1,0 +1,49 @@
+Route tree format:
+======================
+
+[Root]
+	├─[/static1]
+	│	├─[/]				# when trailing slash is enabled
+	│	├─[/static1-1]
+	│	├─[/static1-2]
+	│	├─[/static1-3]
+	│	├─[/:static]		# static event starts with ":"
+	│	└─[/*static]		# static event starts with "*"
+	└─[/static2]
+		├─[/static2-1]
+		│
+		├─[/?:paramName]		# dynamic node
+		│
+		├─[/?*paramName]	# wildcard param
+		│
+		├─[/?*]				# unamed wildcard
+		│
+		├─  p				# list of all param nodes keys
+		│	└─['param1Name', 'param2Name', ...]
+		│
+		├─  P				# list of all param regexes
+		│	└─[/param1Regex/, /param2Regex/, ...]
+		│
+		├─  c				# Contains parametred wildcards
+		│	└─['param1Name', 'param2Name', ...]
+		│
+		├─  C				# list of all param regexes
+		│	└─[/param1Regex/, /param2Regex/, ...]
+		│
+		├─  $				# Contains param resolvers, starting from this route
+		│	├─ paramName: [RegExp|null, Resolver|null]
+		│	└─ __proto__: prev node param
+		├─  r				# Contains param resolvers, we didnt use prototype chain to increase performance
+		│	└─ paramName: resolver
+		│
+		├─  m				# middlewares for this route and its subroutes
+		│	└─ [middleware1, ...]
+		├─  M				# private: own middlewares, not inherit from parent nodes
+		│	└─ [middleware1, ...]
+		│
+		├─  e: errHandler	# Error handler for this route and it's subroutes
+		│
+		├─  w: [wrapper(controller) -> (ctx)->]	# list of controller wrappers
+		│										# for this route and subroutes
+		│
+		└─ GET: handler

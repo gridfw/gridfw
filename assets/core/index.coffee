@@ -31,6 +31,8 @@ UNDEFINED=
 	configurable: true
 	writable: true
 EMPTY_OBJ = Object.freeze Object.create null
+EMPTY_REGEX = test: -> true
+EMPTY_FX = (value)-> value
 # void function (do not change)
 # VOID_FX = ->
 
@@ -105,7 +107,7 @@ class GridFW
 			data: value: locals
 			# root RouteMapper
 			m: value: new RouteMapper this, '/'
-			# global param resolvers
+			# param resolvers
 			$: value: Object.create null
 			# view cache
 			[VIEW_CACHE]: UNDEFINED

@@ -10,7 +10,7 @@
  **** dynamic path
  * /dynamic/:param1/path/:param2
  * /dynamic/:param/* # the rest of path will be stored inside param called "*"
- * /dynamic/:param/:rest* # the rest of path will be stored in the param "rest"
+ * /dynamic/:param/*rest # the rest of path will be stored in the param "rest"
 ###
 Object.defineProperties GridFW.prototype,
 	###*
