@@ -9,14 +9,10 @@ _createRouteTree = do ->
 	paramSet = new Set()
 	# return main function
 	(app, route)->
-		# fix route
-		#TODO
-		# if convert static parts to lower case
-		convLowerCase = app.s[<%= settings.routeIgnoreCase %>]
 		# check param names are not duplicated
 		paramSet.clear()
 		# exec
-		currentNode = app[DYNAMIC_ROUTES]
+		currentNode = app #[DYNAMIC_ROUTES]
 		for part in route.split /(?=\/)/
 			# create node
 			node = node[part] ?= Object.create null
@@ -45,21 +41,14 @@ _createRouteTree = do ->
 				if regex
 					regex = regex[0]
 				else
-					regex = EMPTY_REGEX
+					# create empty as param
+					app.$[paramName] = [EMPTY_REGEX, EMPTY_FX]
 					app.warn 'RTER', "Param [#{paramName}] is not defined"
 				# check no other param has the some
 				if regex is EMPTY_REGEX
 					for v, k in regexList
 						throw new Error "[#{paramList[k]}] equals [#{v}]" if v is EMPTY_REGEX
 				regexList.push regex
-				# add resolver
-				node.r ?= Object.create null
-				node.r[paramName] = app.$[paramName]?[1] || EMPTY_FX
-
-
-			# static part
-			else
-				part = part.toLowerCase() if convLowerCase
 			# create node and go next
 			currentNode = node
 		# return

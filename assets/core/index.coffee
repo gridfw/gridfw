@@ -17,9 +17,6 @@ CONTEXT_PROTO= require '../context'
 REQUEST_PROTO= require '../context/request'
 GError		= require '../lib/error'
 
-RouteMapper	= require '../router/route-mapper'
-RouteNode	= require '../router/route-node'
-
 PluginWrapper = require './plugin-wrapper'
 
 # default config
@@ -39,9 +36,9 @@ EMPTY_FX = (value)-> value
 # View cache
 VIEW_CACHE = Symbol 'View cache'
 # Routes
-ALL_ROUTES	= Symbol 'All routes'
+# ALL_ROUTES	= Symbol 'All routes'
 STATIC_ROUTES	= Symbol 'Static routes'
-DYNAMIC_ROUTES	= Symbol 'Dynamic routes'
+# DYNAMIC_ROUTES	= Symbol 'Dynamic routes'
 PLUGINS			= Symbol 'Plugins'
 
 # caching routes
@@ -108,13 +105,16 @@ class GridFW
 			# root RouteMapper
 			m: value: new RouteMapper this, '/'
 			# param resolvers
-			$: value: Object.create null
+			$: value: Object.create null,
+				'*': value: [EMPTY_REGEX, EMPTY_FX] # wildcard
 			# view cache
 			[VIEW_CACHE]: UNDEFINED
 			# Routes
-			[ALL_ROUTES]: value: Object.create null
+			# [ALL_ROUTES]: value: Object.create null
 			[STATIC_ROUTES]: value: Object.create null
-			[DYNAMIC_ROUTES]: value: Object.create null
+			# [DYNAMIC_ROUTES]: value: Object.create null
+			# route tree
+			'/': value: Object.create null
 			#TODO check if app cache optimise performance for 20 routes
 			[CACHED_ROUTES]: value: Object.create null
 			# plugins

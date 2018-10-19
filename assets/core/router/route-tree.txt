@@ -27,15 +27,6 @@ Route tree format:
 		├─  c				# Contains parametred wildcards
 		│	└─['param1Name', 'param2Name', ...]
 		│
-		├─  C				# list of all param regexes
-		│	└─[/param1Regex/, /param2Regex/, ...]
-		│
-		├─  $				# Contains param resolvers, starting from this route
-		│	├─ paramName: [RegExp|null, Resolver|null]
-		│	└─ __proto__: prev node param
-		├─  r				# Contains param resolvers, we didnt use prototype chain to increase performance
-		│	└─ paramName: resolver
-		│
 		├─  m				# middlewares for this route and its subroutes
 		│	└─ [middleware1, ...]
 		├─  M				# private: own middlewares, not inherit from parent nodes

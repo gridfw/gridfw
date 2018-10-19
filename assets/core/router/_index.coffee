@@ -12,7 +12,7 @@ do ->
 	#=include _link-route-tree.coffee
 	#
 	#
-	#=include _register-route-handlers.coffee
+	#=include app-methods.coffee
 	#=include _app-wrappers.coffee
 
 #=include _resolve-route.coffee
