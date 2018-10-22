@@ -62,7 +62,6 @@ _doExit = ->
 	# do exit
 	loop
 		break unless _exitingProcessQeu.length
-		console.log '------'
 		# pop data
 		code	= _exitingProcessQeu.pop()
 		app 	= _exitingProcessQeu.pop()
@@ -71,7 +70,7 @@ _doExit = ->
 	# waiting for async operations
 	await Promise.all asyncOperations
 	# stop process if no other operation is in process
-	console.log '----- process exit'
+	app.info 'CORE', '--- Process exit'
 	process.exit()
 	# process.abort()
 	return

@@ -13,11 +13,10 @@
  * 		.end
 ###
 class _RouteBuiler
-	constructor: (app, parent, cb)->
+	constructor: (app, cb)->
 		Object.defineProperties this,
 			cb: value: cb
 			app: value: app
-			parent: value: parent
 			controller: value: []
 			# set timeout to build
 			_build: value: setImmediate => do @build
@@ -48,7 +47,7 @@ class _RouteBuiler
 		# send response to parent
 		@cb ctrlFx
 		# return parent for chaine
-		@parent
+		@app
 	###*
 	 * add a controller
 	 * @param  {function} handler

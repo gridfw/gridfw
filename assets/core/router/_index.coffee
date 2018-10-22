@@ -4,6 +4,7 @@
 #TODO
 # - get routeNode
 # - remove node param
+ROUTER_PARAM_STATING_INDEX = 3 # starting index of params
 do ->
 
 	
@@ -12,7 +13,7 @@ do ->
 	#=include _link-route-tree.coffee
 	#
 	#
-	#=include app-methods.coffee
+	#=include _app-methods.coffee
 	#=include _app-wrappers.coffee
 
 #=include _resolve-route.coffee

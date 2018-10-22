@@ -181,7 +181,6 @@ _resolveRoute = do ->
 				resolvedRoute = [1, node]
 			# cache logic
 			else if (node = app[CACHED_ROUTES][route])
-				console.log '---- get route from cache: ', route
 				++node[0] # inc access count (to remove less access)
 				resolvedRoute = node # node
 			# resolve dynamic route

@@ -47,49 +47,67 @@ Object.defineProperties GridFW.prototype,
 			# [_cacheLRU, node, param1Name, param1Value, ...]
 			routeDescriptor = _resolveRoute this, method, rawPath
 			routeNode = routeDescriptor[1]
+			controllerHandler = routeDescriptor[2]
 			params = Object.create null
-			routeParamResolvers = routeNode.$
 			# parse query params
-			rawUrlQuery = @queryParser rawUrlQuery
-			queryParams = Object.create rawUrlQuery
+			queryParams = Object.create null
 			# add context attributes
 			Object.defineProperties ctx,
 				# url
 				path: value: rawPath
-				rawQuery: value: rawUrlQuery
 				query: value: queryParams
 				# params
 				params: value: params
 			# resolve params
-			if routeParamResolvers
-				rawPI = 2
-				rawPLen = routeDescriptor.length
-				while rawPI < rawPLen
-					paramName = routeDescriptor[rawPI]
-					paramValue= routeDescriptor[++rawPI]
-					++rawPI
-					# resolve
-					ref = routeParamResolvers[paramName]
-					if ref and typeof ref[1] is 'function'
-						params[paramName] = await ref[1] ctx, paramValue, <%= app.PATH_PARAM %>
-					else
-						params[paramName] = paramValue
+			rawPI = ROUTER_PARAM_STATING_INDEX
+			rawPLen = routeDescriptor.length
+			routeParamResolvers = @$
+			while rawPI < rawPLen
+				paramName = routeDescriptor[rawPI]
+				paramValue= fastDecode routeDescriptor[++rawPI]
+				++rawPI
+				# resolve
+				# ref = routeParamResolvers[paramName]
+				# if ref and typeof ref[1] is 'function'
+				params[paramName] = await routeParamResolvers[paramName][1] ctx, paramValue, <%= app.PATH_PARAM %>
+				# else
+				# 	params[paramName] = paramValue
 			# resolve query params
-			if rawUrlQuery and routeParamResolvers
-				for k, v of queryParams
-					ref = routeParamResolvers[k]
-					if ref and typeof ref[1] is 'function'
-						queryParams[k] = await ref[1] ctx, v, <%= app.QUERY_PARAM %>
+			if rawUrlQuery
+				ref = @queryParser rawUrlQuery
+				len = ref.length
+				k = 0
+				while k < len
+					# get param name and value
+					paramName = ref[k]
+					paramValue= ref[++k]
+					++k
+					# check param name
+					if paramName is '__proto__'
+						ctx.warn 'query-parser', 'Received query param with illegal name: __proto__'
+						paramName = '&__proto__'
+					# resolve if registred param
+					if ref2 = routeParamResolvers[paramName]
+						paramValue = await ref2[1] ctx, paramValue, <%= app.QUERY_PARAM %>
+					# groupement
+					if Reflect.has queryParams, paramName
+						ref2 = queryParams[paramName]
+						if Array.isArray ref2
+							ref2.push paramValue
+						else
+							queryParams[paramName] = [ref2, paramValue]
+					else
+						queryParams[paramName] = paramValue
 			# execute middlewares
 			if routeNode.m
 				for handler in routeNode.m
 					await handler ctx
 			# execute filters
-			if routeNode.f
-				for handler in routeNode.f
-					await handler ctx
+			# if routeNode.f
+			# 	for handler in routeNode.f
+			# 		await handler ctx
 			# execute Controller
-			v = await routeNode.c ctx
+			v = await controllerHandler ctx
 			unless ctx.finished
 				if v in [undefined, ctx]
 					# if a view is set
@@ -97,27 +115,26 @@ Object.defineProperties GridFW.prototype,
 						await ctx.render()
 				else
 					await ctx.render v
+					#TODO
 			# execute post processes
-			if ctx.p
-				for handler in routeNode.p
-					await handler ctx
+			# if ctx.p
+			# 	for handler in routeNode.p
+			# 		await handler ctx
 		catch err
 			# excute user defined error handlers
 			if routeNode?.e
-				for handler in routeNode.e
-					try
-						await handler err, ctx, this
-						err = null
-						break
-					catch e
-						err = e
+				try
+					await routeNode.e err, ctx, this
+					err = null
+				catch e
+					err = e
 			if err
 				await _uncaughtRequestErrorHandler err, ctx, this
 				.catch (err)=> @fatalError 'HANDLE-REQUEST', err
 		finally
 			# close the request if not yeat closed
 			unless ctx.finished
-				ctx.warn 'HANDLE-REQUEST', 'Request leaved inclose!'
+				ctx.warn 'HANDLE-REQUEST', 'Request leaved open!'
 				await ctx.end()
 		return
 

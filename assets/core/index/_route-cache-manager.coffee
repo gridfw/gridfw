@@ -17,6 +17,7 @@ _routeCacheStart = do ->
 		currentInterval = currentCeil = null
 		_init = ->
 			currentInterval = intervals[level]
+			throw new Error 'Illegal interval' unless currentInterval
 			currentCeil = accessCeil[level]
 			app.debug 'ROUTE-CACHE', "Set cache cleaner params to level: #{level}, interval: #{currentInterval}s, ceil: #{currentCeil}"
 			# convert to ms

@@ -110,7 +110,7 @@ _createRouteNode = (app, method, route, handler)->
 	throw new Error 'route expected string' unless typeof route is 'string'
 	# prevent "?" symbol and multiple successive slashes
 	throw new Error 'Sequentially slashes detected' if /\/\//.test route
-	throw new Error 'Symbol "?" is only allowed to escape ":" and "*"' if if /[^\/]\?|\?[^:*]/.test route
+	throw new Error 'Symbol "?" is only allowed to escape ":" and "*"' if /[^\/]\?|\?[^:*]/.test route
 	throw new Error 'Controller mast be function' unless typeof handler is 'function'
 
 	# settings
@@ -124,6 +124,7 @@ _createRouteNode = (app, method, route, handler)->
 	# fix route
 	# replace '/:' and '/*' with '/?:' and '/?*'
 	# replace '/?:' and '/?*' with '/:' and '/*'
+	originalRoute = route # for debuging
 	route = route.replace /\/([:*?])/g, (_, k)->
 		if k is '?' then '/' else '/?' + k
 	# check if it is a static or dynamic route
@@ -137,15 +138,15 @@ _createRouteNode = (app, method, route, handler)->
 		route = route.toLowerCase() if ignoreCase
 		route = encodeurl route
 	# get or create route tree
-	app.debug 'RTER', "Map the controller to #{method} #{route}"
+	app.debug 'RTER', "Map the controller to #{method} #{originalRoute}"
 	mapper = _createRouteTree app, route
-	throw new Error "Route has allready a controller: #{method} #{route}" if mapper[method]
+	throw new Error "Route has allready a controller: #{method} #{originalRoute}" if mapper[method]
 	mapper[method] = handler
 
 	# add static shortcut
 	unless isDynamic
-		app.debug 'RTER', "Create static shortcut: #{method} #{routeKey}"
-		app[STATIC_ROUTES][method + route] = mapper
+		app.debug 'RTER', "Create static shortcut: #{method} #{originalRoute}"
+		app[STATIC_ROUTES][method + route] = [1, mapper, handler]
 
 	# ends
 	return

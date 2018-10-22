@@ -29,7 +29,7 @@ app.get '/hello world', (ctx)->
 # dynamic route
 app.get '/test/:var/:var2', (ctx)->
 	console.log '--- params: ', ctx.params
-	console.log '--- paramssss: ', ctx.params.var
+	console.log '--- query: ', ctx.query
 	ctx.send 'got great results'
 
 # dynamic route

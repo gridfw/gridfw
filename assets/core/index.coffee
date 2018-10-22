@@ -30,6 +30,7 @@ UNDEFINED=
 EMPTY_OBJ = Object.freeze Object.create null
 EMPTY_REGEX = test: -> true
 EMPTY_FX = (value)-> value
+EMPTY_PARAM_RESOLVER = (ctx, value, type)-> value
 # void function (do not change)
 # VOID_FX = ->
 
@@ -103,10 +104,10 @@ class GridFW
 			locals: value: locals
 			data: value: locals
 			# root RouteMapper
-			m: value: new RouteMapper this, '/'
+			# m: value: new RouteMapper this, '/'
 			# param resolvers
 			$: value: Object.create null,
-				'*': value: [EMPTY_REGEX, EMPTY_FX] # wildcard
+				'*': value: [EMPTY_REGEX, EMPTY_PARAM_RESOLVER] # wildcard
 			# view cache
 			[VIEW_CACHE]: UNDEFINED
 			# Routes
@@ -116,7 +117,9 @@ class GridFW
 			# route tree
 			'/': value: Object.create null
 			#TODO check if app cache optimise performance for 20 routes
-			[CACHED_ROUTES]: value: Object.create null
+			[CACHED_ROUTES]:
+				value: Object.create null
+				writable: true
 			# plugins
 			[PLUGINS]: value: Object.create null
 		# create context
@@ -135,14 +138,15 @@ class GridFW
 			_routeCacheStart this
 			# add dev utilities
 			if @s[<%= settings.devTools %>]
-				require('../dev')(app)
+				require('../dev')(this)
 
 		.catch (err) =>
 			@fatalError 'CORE', err
 			process.exit()
 		return
 
-
+	# <!> For debug purpose only!
+	@STATIC_ROUTES: STATIC_ROUTES
 # getters
 Object.defineProperties GridFW.prototype,
 	### if the server is listening ###

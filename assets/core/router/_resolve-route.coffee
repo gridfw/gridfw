@@ -7,17 +7,19 @@
 _resolveRoute = do ->
 	# store wildcard nodes
 	wildcardNodes = []
+	staticNodeResult = [1, null, null] # for performance purpose, return this for all static routes
 	# 404 Error node (enable caching)
+	err404NodeHandler = ->
+		throw ERROR_404
 	err404Node =
-		c: ->
-			throw ERROR_404
+		ALL: err404NodeHandler
 	# resolve dynamic route
 	_resolveDynamicRoute = (app, method, route, ignoreCase)->
-		resolvedRoute= [1, err404Node]
+		resolvedRoute= [1, err404Node, err404NodeHandler]
 		# init
 		currentNode = app['/']
 		wildcardNodes.length = 0
-		paramIndx = 2 # excape cacheIndex and node
+		paramIndx = ROUTER_PARAM_STATING_INDEX # excape cacheIndex and node
 		# seek for path
 		parts = route.split '/'
 		`lp://`
@@ -43,35 +45,37 @@ _resolveRoute = do ->
 						resolvedRoute.push paramName, part
 						paramIndx += 2
 						currentNode = currentNode['/?:' + paramName]
-						continue lp
+						`continue lp`
 			# route not found as static or parametred
 			currentNode = null
 			break
-			# check for wildcard route
-			i = wildcardNodes.length
-			if i
-				params = app.$
-				while i > 0
-					# extrat data
-					level = wildcardNodes[--i]
-					paramIndex = wildcardNodes[--i]
-					node = wildcardNodes[--i]
-					# get rest of URL
-					rest = parts.slice(level).join '/'
-					# check if has this method
-					for param, k in node.c
-						p = node['/?*' + param]
-						handler = p[method] or (method is 'HEAD' and p.GET) or p.ALL
-						if handler and params[param][0].test rest
-							resolvedRoute.splice paramIndex
-							resolvedRoute.push param, rest
-							currentNode = p
-							`break lp`
+		# Route found
+		if currentNode and (handler = currentNode[method] or (method is 'HEAD' and currentNode.GET) or currentNode.ALL)
+			resolvedRoute[1] = currentNode
+			resolvedRoute[2] = handler
+		# Check for wildcard route if route not found
+		else if (i = wildcardNodes.length)
+			params = app.$
+			`wle://`
+			while i > 0
+				# extrat data
+				level = wildcardNodes[--i]
+				paramIndex = wildcardNodes[--i]
+				node = wildcardNodes[--i]
+				# get rest of URL
+				rest = parts.slice(level).join '/'
+				# check if has this method
+				for param, k in node.c
+					currentNode = node['/?*' + param]
+					handler = currentNode[method] or (method is 'HEAD' and currentNode.GET) or currentNode.ALL
+					if handler and params[param][0].test rest
+						resolvedRoute.splice paramIndex
+						resolvedRoute.push param, rest
+						resolvedRoute[1] = currentNode
+						resolvedRoute[2] = handler
+						`break wle`
 			# 404: page not found
-			# remove all params
-			resolvedRoute.splice 2
-			currentNode = 
-			break
+			resolvedRoute.splice ROUTER_PARAM_STATING_INDEX if resolvedRoute[1] is ERROR_404
 		# return resolved route
 		resolvedRoute
 
@@ -96,16 +100,22 @@ _resolveRoute = do ->
 		method is 'HEAD' and staticRoutes['GET' + staticRoute] or 
 		staticRoutes['ALL' + staticRoute]
 		if routeNode
-			resolvedRoute = [1, routeNode]
+			console.log 'resolve static route'
+			# staticNodeResult[1] = routeNode
+			# staticNodeResult[2] = routeNode[method]
+			return routeNode
 		# cache logic
 		else if (node = app[CACHED_ROUTES][method + route])
-			console.log '---- get route from cache: ', route
+			console.log '---- get route from cache: '
 			++node[0] # inc access count (to remove less access)
-			resolvedRoute = node # node
+			# resolvedRoute = node # node
+			return node
 		# resolve dynamic route
 		else
+			console.log '----- resolve dynamic route'
 			resolvedRoute = _resolveDynamicRoute app, method, route, ignoreCase
 			# add route to cache
 			app[CACHED_ROUTES][method + route] = resolvedRoute
-		# [_cacheLRU, node, param1Name, param1Value, ...]
-		resolvedRoute
+			return resolvedRoute
+		# [_cacheLRU, node, handler, param1Name, param1Value, ...]
+		# resolvedRoute
