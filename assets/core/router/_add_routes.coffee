@@ -64,7 +64,7 @@ Object.defineProperties GridFW.prototype,
 			# create new node only if controller is specified, add handler to other routes otherwise
 			when 2
 				# do builder
-				return new _RouteBuiler this, (handler)=> _createRouteNode this, method, route, handler
+				return new _RouteBuiler this, (handler, descrp)=> _createRouteNode this, method, route, handler, descrp
 			else
 				throw new Error '[app.on] Illegal arguments ' + JSON.stringify arguments
 	###*
@@ -90,12 +90,13 @@ Object.defineProperties GridFW.prototype,
 
 ###*
  * Create route node or add handlers to other routes
+ * @optional @param {object} descrp - other optional params
 ###
-_createRouteNode = (app, method, route, handler)->
+_createRouteNode = (app, method, route, handler, descrp)->
 	# flatten method
 	if Array.isArray method
 		for v in method
-			_createRouteNode app, v, route, handler
+			_createRouteNode app, v, route, handler, descrp
 		return
 	# check method
 	throw new Error 'method expected string' unless typeof method is 'string'
@@ -104,12 +105,11 @@ _createRouteNode = (app, method, route, handler)->
 	# flatten route
 	if Array.isArray route
 		for v in route
-			_createRouteNode app, method, v, handler
+			_createRouteNode app, method, v, handler, descrp
 		return
 	# check route
 	assetRoute route
 	
-	throw new Error 'Controller mast be function' unless typeof handler is 'function'
 	# settings
 	settings = app.s
 	ignoreCase = settings[<%= settings.routeIgnoreCase %>]
@@ -137,14 +137,32 @@ _createRouteNode = (app, method, route, handler)->
 	# get or create route tree
 	app.debug 'RTER', "Map the controller to #{method} #{originalRoute}"
 	mapper = _createRouteTree app, route
-	throw new Error "Route has allready a controller: #{method} #{originalRoute}" if mapper[method]
-	mapper[method] = handler
+	# add controller
+	if handler
+		throw new Error 'Controller mast be function' unless typeof handler is 'function'
+		throw new Error "Route has allready a controller: #{method} #{originalRoute}" if mapper[method]
+		mapper[method] = handler
+		mapper['_' + method] = handler
+
+	# optional operations
+	if descrp
+		# wrappers
+		if descrp.wrappers
+			app.info 'RTER', "Wrap controller at: #{method} #{originalRoute}"
+			handler = mapper[method]
+			throw new Error 'No controller to wrap at: #{method} #{originalRoute}' unless mp
+			for wrap in descrp.wrappers
+				handler = wrap handler
+				throw new Error "Illegal wrapper response! wrapper: #{wrap}" unless typeof handler is 'function' and handler.length is 1
+			mapper['_' + method] = mapper[method] = handler
+
+	# fix route, add wrappers, and other handlers
+	_AjustRouteHandlers mapper, false
 
 	# add static shortcut
 	unless isDynamic
 		app.debug 'RTER', "Create static shortcut: #{method} #{originalRoute}"
 		app[STATIC_ROUTES][method + route] = [1, mapper, handler]
-
 	# ends
 	return
 

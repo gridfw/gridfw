@@ -108,13 +108,12 @@ Object.defineProperties GridFW.prototype,
 						else
 							do resolve
 		# convert express error handler 
-		else unless handler.length is 1
-			throw new Error 'Error handler expect exactly one argument (or 4 in case of ExpressJS handler)'
+		else unless handler.length in [1, 2]
+			throw new Error 'Error handler expect function(err, ctx){}. (or ExpressJS error handler)'
 		# 
 		mapper = _createRouteTree this, route
-		throw new Error 'Route has already an error handler: #{route}' if mapper.E
-		mapper.E = handler
-		mapper.e = handler
+		(mapper.E ?= []).push handler
+		(mapper.e ?= []).push handler
 		# propagate middleware to subroutes
 		_AjustRouteHandlers mapper
 		# chain

@@ -123,11 +123,13 @@ Object.defineProperties GridFW.prototype,
 		catch err
 			# excute user defined error handlers
 			if routeNode?.e
-				try
-					await routeNode.e err, ctx, this
-					err = null
-				catch e
-					err = e
+				for errHandler in routeNode.e
+					try
+						await errHandler err, ctx
+						err = null
+						break
+					catch e
+						err = e
 			if err
 				await _uncaughtRequestErrorHandler err, ctx, this
 				.catch (err)=> @fatalError 'HANDLE-REQUEST', err

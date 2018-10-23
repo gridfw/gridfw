@@ -14,6 +14,5 @@ do ->
 	#
 	#
 	#=include _app-methods.coffee
-	#=include _app-wrappers.coffee
 
 #=include _resolve-route.coffee
