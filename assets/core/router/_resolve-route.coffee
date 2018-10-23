@@ -53,32 +53,35 @@ _resolveRoute = do ->
 		if currentNode and (handler = currentNode[method] or (method is 'HEAD' and currentNode.GET) or currentNode.ALL)
 			resolvedRoute[1] = currentNode
 			resolvedRoute[2] = handler
-		# Check for wildcard route if route not found
-		else if (i = wildcardNodes.length)
-			params = app.$
-			`wle://`
-			while i > 0
-				# extrat data
-				level = wildcardNodes[--i]
-				paramIndex = wildcardNodes[--i]
-				node = wildcardNodes[--i]
-				# get rest of URL
-				rest = parts.slice(level).join '/'
-				# check if has this method
-				for param, k in node.c
-					currentNode = node['/?*' + param]
-					handler = currentNode[method] or (method is 'HEAD' and currentNode.GET) or currentNode.ALL
-					if handler and params[param][0].test rest
-						resolvedRoute.splice paramIndex
-						resolvedRoute.push param, rest
-						resolvedRoute[1] = currentNode
-						resolvedRoute[2] = handler
-						`break wle`
-			# 404: page not found
-			resolvedRoute.splice ROUTER_PARAM_STATING_INDEX if resolvedRoute[1] is ERROR_404
+		# check for wild card route
+		else
+			# add current node wildcard
+			if currentNode and currentNode.c
+				wildcardNodes.push currentNode, paramIndx, level + 1
+			# check for closest wildcard route
+			if (i = wildcardNodes.length)
+				params = app.$
+				`wle://`
+				while i > 0
+					# extrat data
+					level = wildcardNodes[--i]
+					paramIndex = wildcardNodes[--i]
+					node = wildcardNodes[--i]
+					# get rest of URL
+					rest = parts.slice(level).join '/'
+					# check if has this method
+					for param, k in node.c
+						currentNode = if param is '*' then node['/?*'] else node['/?*' + param]
+						handler = currentNode[method] or (method is 'HEAD' and currentNode.GET) or currentNode.ALL
+						if handler and params[param][0].test rest
+							resolvedRoute.splice paramIndex
+							resolvedRoute.push param, rest
+							resolvedRoute[1] = currentNode
+							resolvedRoute[2] = handler
+				# 404: page not found
+				resolvedRoute.splice ROUTER_PARAM_STATING_INDEX if resolvedRoute[1] is err404Node
 		# return resolved route
 		resolvedRoute
-
 	# return resolver
 	(app, method, route)->
 		# settings
@@ -100,19 +103,13 @@ _resolveRoute = do ->
 		method is 'HEAD' and staticRoutes['GET' + staticRoute] or 
 		staticRoutes['ALL' + staticRoute]
 		if routeNode
-			console.log 'resolve static route'
-			# staticNodeResult[1] = routeNode
-			# staticNodeResult[2] = routeNode[method]
 			return routeNode
 		# cache logic
 		else if (node = app[CACHED_ROUTES][method + route])
-			console.log '---- get route from cache: '
 			++node[0] # inc access count (to remove less access)
-			# resolvedRoute = node # node
 			return node
 		# resolve dynamic route
 		else
-			console.log '----- resolve dynamic route'
 			resolvedRoute = _resolveDynamicRoute app, method, route, ignoreCase
 			# add route to cache
 			app[CACHED_ROUTES][method + route] = resolvedRoute
