@@ -107,12 +107,9 @@ _createRouteNode = (app, method, route, handler)->
 			_createRouteNode app, method, v, handler
 		return
 	# check route
-	throw new Error 'route expected string' unless typeof route is 'string'
-	# prevent "?" symbol and multiple successive slashes
-	throw new Error 'Sequentially slashes detected' if /\/\//.test route
-	throw new Error 'Symbol "?" is only allowed to escape ":" and "*"' if /[^\/]\?|\?[^:*]/.test route
+	assetRoute route
+	
 	throw new Error 'Controller mast be function' unless typeof handler is 'function'
-
 	# settings
 	settings = app.s
 	ignoreCase = settings[<%= settings.routeIgnoreCase %>]

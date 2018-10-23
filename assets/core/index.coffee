@@ -31,6 +31,7 @@ EMPTY_OBJ = Object.freeze Object.create null
 EMPTY_REGEX = test: -> true
 EMPTY_FX = (value)-> value
 EMPTY_PARAM_RESOLVER = (ctx, value, type)-> value
+EMPTY_PARAM = [EMPTY_REGEX, EMPTY_PARAM_RESOLVER] # do not change
 # void function (do not change)
 # VOID_FX = ->
 
@@ -107,7 +108,7 @@ class GridFW
 			# m: value: new RouteMapper this, '/'
 			# param resolvers
 			$: value: Object.create null,
-				'*': value: [EMPTY_REGEX, EMPTY_PARAM_RESOLVER] # wildcard
+				'*': value: EMPTY_PARAM # wildcard
 			# view cache
 			[VIEW_CACHE]: UNDEFINED
 			# Routes

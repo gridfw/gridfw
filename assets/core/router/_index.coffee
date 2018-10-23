@@ -7,7 +7,7 @@
 ROUTER_PARAM_STATING_INDEX = 3 # starting index of params
 do ->
 
-	
+	#=include _utils.coffee
 	#=include _add_routes.coffee
 	#=include _add_routes-builder.coffee
 	#=include _link-route-tree.coffee

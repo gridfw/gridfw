@@ -8,7 +8,7 @@ _createRouteTree = do ->
 	# prevent double params
 	paramSet = new Set()
 	# return main function
-	(app, route)->
+	(app, route, doCreate)->
 		currentNode = app['/'] #[DYNAMIC_ROUTES]
 		unless route is '/'
 			# check param names are not duplicated
@@ -17,6 +17,13 @@ _createRouteTree = do ->
 			for part in route.split /(?=\/)/
 				# create node
 				node = currentNode[part] ?= Object.create null
+				# if create node
+				unless node
+					if doCreate is false
+						currentNode = null
+						break
+					else
+						node = currentNode[part] = Object.create null
 				# if param
 				if part.startsWith '/?'
 					isWildcard = part.charAt(2) is '*'
@@ -43,7 +50,7 @@ _createRouteTree = do ->
 						regex = regex[0]
 					else
 						# create empty as param
-						app.$[paramName] = [EMPTY_REGEX, EMPTY_PARAM_RESOLVER]
+						app.$[paramName] = EMPTY_PARAM
 						regex = EMPTY_REGEX
 						app.warn 'RTER', "Param [#{paramName}] is undefined"
 					# check no other param has the some

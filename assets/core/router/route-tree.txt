@@ -33,8 +33,10 @@ Route tree format:
 		│	└─ [middleware1, ...]
 		│
 		├─  e: errHandler	# Error handler for this route and it's subroutes
+		├─  E: errHandler	# Error handler for this route and it's subroutes (starting exactly from this route)
 		│
 		├─  w: [wrapper(controller) -> (ctx)->]	# list of controller wrappers
 		│										# for this route and subroutes
 		│
+		├─  W: [] # wrappers starting exactly from this route
 		└─ GET: handler
