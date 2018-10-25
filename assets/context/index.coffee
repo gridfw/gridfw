@@ -53,7 +53,7 @@ CONTEXT_PROTO=
 		if locals
 			Object.setPrototypeOf locals, @locals
 		else
-			locals = @locals
+			locals = Object.create @locals
 		@app._render path, locals
 		.then (html)=>
 			# @contentType = 'text/html'
@@ -94,7 +94,7 @@ CONTEXT_PROTO=
 				else do resolve
 	### response.write(chunk[, encoding], cb) ###
 	write: (chunk, encoding)->
-		new Promise (resolve, reject)->
+		new Promise (resolve, reject)=>
 			@_write chunk, encoding || '<%= app.DEFAULT_ENCODING %>', (err)->
 				if err then reject err
 				else resolve()

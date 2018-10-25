@@ -1,2 +1,5 @@
-div Page not found
-div #{ctx.url}
+extends ../layout.pug
+append body
+	div Page not found
+	div #{ctx.url}
+	pre #{error}

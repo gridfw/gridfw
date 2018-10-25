@@ -128,29 +128,30 @@ _createRouteNode = (app, method, route, handler, descrp)->
 	isDynamic = /\/\?/.test route
 	# lowercase and encode static parts
 	if isDynamic
+		app.debug 'RTER', "Map dynamic\t: #{method} #{originalRoute}"
 		route = route.replace /\/([^?][^\/]*)/g, (v)->
 			v = v.toLowerCase() if ignoreCase
 			encodeurl v
 	else
+		app.debug 'RTER', "Map static\t: #{method} #{originalRoute}"
 		route = route.toLowerCase() if ignoreCase
 		route = encodeurl route
 	# get or create route tree
-	app.debug 'RTER', "Map the controller to #{method} #{originalRoute}"
 	mapper = _createRouteTree app, route
 	# add controller
 	if handler
 		throw new Error 'Controller mast be function' unless typeof handler is 'function'
-		throw new Error "Route has allready a controller: #{method} #{originalRoute}" if mapper[method]
+		app.warn 'RTER', "Route controller overrided: #{method} #{originalRoute}" if mapper[method]
 		mapper[method] = handler
 		mapper['_' + method] = handler
 
 	# optional operations
 	if descrp
 		# wrappers
-		if descrp.wrappers
+		if descrp.wrappers.length
 			app.info 'RTER', "Wrap controller at: #{method} #{originalRoute}"
 			handler = mapper[method]
-			throw new Error 'No controller to wrap at: #{method} #{originalRoute}' unless mp
+			throw new Error 'No controller to wrap at: #{method} #{originalRoute}' unless handler
 			for wrap in descrp.wrappers
 				handler = wrap handler
 				throw new Error "Illegal wrapper response! wrapper: #{wrap}" unless typeof handler is 'function' and handler.length is 1
@@ -161,7 +162,6 @@ _createRouteNode = (app, method, route, handler, descrp)->
 
 	# add static shortcut
 	unless isDynamic
-		app.debug 'RTER', "Create static shortcut: #{method} #{originalRoute}"
 		app[STATIC_ROUTES][method + route] = [1, mapper, handler]
 	# ends
 	return

@@ -98,22 +98,37 @@ Object.defineProperties CONTEXT_PROTO,
 	 * @param {object} options - options
 	###
 	sendFile:	value: (path, options)->
-		new Promise (resolve, reject)->
+		options ?= {}
+		new Promise (resolve, reject)=>
 			# control
 			throw new Error 'path expected string' unless typeof path is 'string'
 			path = encodeurl path
 
 			# Prepare file streaming
-			file = sendFile @req, path, options || {}
+			file = sendFile @req, path, options
 			# flags
 			streaming = off
 			# done = no
 			# Add callbacks
-			file.on 'directory', -> reject new GError 'EISDIR', 'EISDIR, read'
-			file.on 'stream', -> streaming = on
-			file.on 'file', -> streaming = off
-			file.on 'error', -> reject
-			file.on 'end', -> resolve
+			file.on 'directory', ->
+				reject new GError 'EISDIR', 'EISDIR, read'
+			file.on 'stream', ->
+				streaming = on
+				return
+			file.on 'file', ->
+				streaming = off
+				return
+			file.on 'error', (err) ->
+				unless err
+					err = new GError 0, 'Uncknown Error'
+				else if err.status is 404
+					err = new GError '404-file', err.message, err
+				else
+					err = new GError err.code, err.message, err
+				reject err
+			file.on 'end', (event)->
+				streaming = off
+			# 	resolve event
 			# Execute a callback when a HTTP request closes, finishes, or errors.
 			onFinishLib this, (err)->
 				# err.code = 'ECONNRESET'
@@ -130,6 +145,7 @@ Object.defineProperties CONTEXT_PROTO,
 						res.setHeader k, v
 			# pipe file
 			file.pipe this
+			return
 	###*
 	 * Download file
 	 * @param {string} path - file path

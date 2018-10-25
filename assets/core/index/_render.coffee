@@ -44,6 +44,7 @@ GridFW::_render = (templatePath, locals)->
 		# compile template
 		renderFx = template.module.compile template.content,
 			pretty: settings[<%= settings.pretty %>]
+			filename: template.path
 		# cache
 		viewCache?.set templatePath, renderFx
 	# compile render fx
@@ -57,11 +58,13 @@ _loadTemplateFileContent= (engines, filePath) ->
 	result=
 		content: null
 		module: null
+		path: null
 	for ext, module of engines
 		try
 			fPath = if filePath.endsWith ext then filePath else filePath + ext
 			result.content	= await fs.readFile fPath, 'utf8'
 			result.module	= module
+			result.path		= fPath
 			break
 		catch err
 			if err and err.code is 'ENOENT'

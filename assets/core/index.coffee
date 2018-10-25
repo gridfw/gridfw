@@ -79,6 +79,8 @@ class GridFW
 	 * @return {[type]}         [description]
 	###
 	constructor: (options)->
+		# print logo
+		_console_logo this
 		# locals
 		locals = Object.create null,
 			app: value: this
@@ -133,8 +135,6 @@ class GridFW
 		# run load app
 		@reload options
 		.then =>
-			# print welcome message
-			_console_welcome this
 			# start cache cleaner
 			_routeCacheStart this
 			# add dev utilities
@@ -183,6 +183,7 @@ loggerFactory CONTEXT_PROTO, level: 'debug'
 #=include index/_plugin.coffee
 #=include index/_reload.coffee
 #=include index/_route-cache-manager.coffee
+#=include index/_static-files.coffee
 
 # exports
 module.exports = GridFW

@@ -12,6 +12,13 @@ app = new GridFw path.join __dirname, 'gridfw-config.js'
 # add plugin
 # app.plugin GridMonit()
 
+# serve a single file
+app.get '/favicon.ico', app.static path.join __dirname, 'public/gridfw.svg'
+# serve a folder
+app.get '/public/*', app.static path.join __dirname, 'public'
+# equiv to
+# app.get '/public/*', app.static 'public'
+
 # append Get route
 app.get '/', (ctx)->
 	ctx.info 'My service', '--- Path "/" called'
@@ -61,3 +68,12 @@ app.get '/asterix/*', (ctx)->
 app.listen 3000
 	.then -> app.log 'Main', "Server listening At: #{app.port}"
 	.catch (err)-> app.error 'Main', "Got Error: ", err
+
+# wrap test
+app.wrap '/*', (controller)->
+	console.log '---- exec wra^p'
+	(ctx)->
+		console.log '---- my wrap'
+		app.log 'myWrap', "--- wraping: #{ctx.method} #{ctx.url}"
+		await controller ctx
+		app.log 'myWrap', "--- ENDS: #{ctx.method} #{ctx.url}"

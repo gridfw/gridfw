@@ -163,20 +163,21 @@ exports.settings=
 	errorTemplates:
 		value: null
 		default: (app, mode)->
-			# dev mode
-			if mode is 'dev'
-				'404': path.join __dirname, '../../build/views/errors/d404'
-				'500': path.join __dirname, '../../build/views/errors/d500'
-			# prod mode
-			else
-				'404': path.join __dirname, '../../build/views/errors/404'
-				'500': path.join __dirname, '../../build/views/errors/500'
+			errorCodes = ['404', '404-file', '500']
+			errPath = '../../build/views/errors/'
+			errPath += 'd' if mode is 'dev'
+			# create
+			obj = Object.create null
+			for k in errorCodes
+				obj[k] = path.join __dirname, errPath + k
+			return obj
 		check: (value)->
 			unless typeof value is 'object' and value
 				throw new Error 'ErrorTemplates a map of "Error-code" to "template path"'
+			throw new Error 'A "500" code template is missing' unless value['500']
 			for k,v in value
-				unless /^d[0-9]{3}/.test k
-					throw new Error "Error templates: Illegal error code: #{k}"
+				# unless /^d[0-9]{3}/.test k
+				# 	throw new Error "Error templates: Illegal error code: #{k}"
 				unless typeof v is 'string'
 					throw new Error "Error templates: errorTemplates.#{k} mast be file path"
 			return

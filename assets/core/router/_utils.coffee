@@ -30,7 +30,10 @@ _AjustRouteHandlers = (routeMapper, goSubRoutes)->
 					return
 	# wrappers
 	if routeMapper.W
+		console.log '*----- add wrapper'
 		_routeTreeSeek routeMapper, (parentNode, mapper)->
+			console.log '------------------ mapper: ', mapper
+			return
 			# clone parent middlewares
 			m = parentNode.w.slice 0
 			# push child wrappers (LIFO)
@@ -75,15 +78,15 @@ _routeTreeSeek = (mapper, cb)->
 		mapper		= next[i]
 		parentNode	= next[++i]
 		++i
-		continue unless parentNode
-		# cb for this mapper, when returns false, do not continue
-		# with this branche
-		doContinue = cb parentNode, mapper
-		# go through this mapper subnodes
-		unless doContinue is false
-			for k in Reflect.ownKeys mapper
-				if typeof k is 'string' and k.startsWith '/'
-					next.push mapper[k], mapper
+		if parentNode
+			# cb for this mapper, when returns false, do not continue
+			# with this branche
+			doContinue = cb parentNode, mapper
+			# go through this mapper subnodes
+			unless doContinue is false
+				for k in Reflect.ownKeys mapper
+					if typeof k is 'string' and k.startsWith '/'
+						next.push mapper[k], mapper
 		# break
-		break unless i >= next.length
+		break if i >= next.length
 	return
