@@ -48,7 +48,7 @@ Object.defineProperties GridFW.prototype,
 	###
 	on: value: (method, route, handler)->
 		# clear route cache
-		@[CACHED_ROUTES] = Object.create null if @[IS_LOADED]
+		do @_clearRCache
 		# Add handlers
 		switch arguments.length
 			# .on 'GET', '/route', handler
@@ -162,7 +162,7 @@ _createRouteNode = (app, method, route, handler, descrp)->
 
 	# add static shortcut
 	unless isDynamic
-		app[STATIC_ROUTES][method + route] = [1, mapper, handler]
+		app[STATIC_ROUTES][method + route] = mapper['~' + method] = [1, mapper, handler]
 	# ends
 	return
 
@@ -171,6 +171,7 @@ _createRouteNode = (app, method, route, handler, descrp)->
  * Route wrappers
 ###
 HTTP_SUPPORTED_METHODS.forEach (method)->
+	method = method.toLowerCase()
 	Object.defineProperty GridFW.prototype, method,
 		value: (route, handler)->
 			switch arguments.length

@@ -61,13 +61,13 @@ DEFAULT_PROTOCOL = 'http'
 # consts
 HTTP_METHODS = http.METHODS
 HTTP_SUPPORTED_METHODS= [
-	'all' # all methods
-	'get'
-	'head'
-	'post'
-	'put'
-	'patch'
-	'delete'
+	'ALL' # all methods
+	'GET'
+	'HEAD'
+	'POST'
+	'PUT'
+	'PATCH'
+	'DELETE'
 ]
 
 class GridFW

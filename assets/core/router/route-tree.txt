@@ -39,4 +39,8 @@ Route tree format:
 		│										# for this route and subroutes
 		│
 		├─  W: [] # wrappers starting exactly from this route
-		└─ GET: handler
+		│
+		├─ GET: handler
+		├─ _GET: original_handler # original handler, without wrapping
+		├─ ~GET: [] # link to static route when static
+		└─ 

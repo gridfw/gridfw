@@ -30,10 +30,7 @@ _AjustRouteHandlers = (routeMapper, goSubRoutes)->
 					return
 	# wrappers
 	if routeMapper.W
-		console.log '*----- add wrapper'
 		_routeTreeSeek routeMapper, (parentNode, mapper)->
-			console.log '------------------ mapper: ', mapper
-			return
 			# clone parent middlewares
 			m = parentNode.w.slice 0
 			# push child wrappers (LIFO)
@@ -47,10 +44,10 @@ _AjustRouteHandlers = (routeMapper, goSubRoutes)->
 			mapper.w = m
 			return
 	# change controller
-	if goSubRoutes is false
-		_adjustRouteMapper routeMapper
-	else
-		_routeTreeSeek routeMapper, (parentNode, mapper)-> _adjustRouteMapper mapper
+	_adjustRouteMapper routeMapper
+	unless goSubRoutes is false
+		_routeTreeSeek routeMapper, (parentNode, mapper)->
+			_adjustRouteMapper mapper
 	return
 _adjustRouteMapper = (mapper)->
 	# adjust all supported HTTP methods
@@ -66,8 +63,13 @@ _adjustRouteMapper = (mapper)->
 				controller = ref[i] controller
 				throw new Error "Illegal wrapper response! wrapper: #{ref[i]}" unless typeof controller is 'function' and controller.length is 1
 				--i
+		console.log 'mapper>> ',method
 		# replace with new controller
 		mapper[method] = controller
+		# if is static route
+		ref = mapper['~' + method]
+		if ref
+			ref[2] = controller
 		return
 
 _routeTreeSeek = (mapper, cb)->
@@ -78,15 +80,17 @@ _routeTreeSeek = (mapper, cb)->
 		mapper		= next[i]
 		parentNode	= next[++i]
 		++i
+		# cb for this mapper, when returns false, do not continue
+		# with this branche
 		if parentNode
-			# cb for this mapper, when returns false, do not continue
-			# with this branche
 			doContinue = cb parentNode, mapper
-			# go through this mapper subnodes
-			unless doContinue is false
-				for k in Reflect.ownKeys mapper
-					if typeof k is 'string' and k.startsWith '/'
-						next.push mapper[k], mapper
+		else
+			doContinue = true
+		# go through this mapper subnodes
+		unless doContinue is false
+			for k in Reflect.ownKeys mapper
+				if typeof k is 'string' and k.startsWith '/'
+					next.push mapper[k], mapper
 		# break
 		break if i >= next.length
 	return

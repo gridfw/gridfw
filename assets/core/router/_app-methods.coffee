@@ -128,8 +128,12 @@ Object.defineProperties GridFW.prototype,
 		mapper = _createRouteTree this, route
 		(mapper.W ?= []).push handler
 		(mapper.w ?= []).push handler
-		console.log '---- adjust handlers'
 		_AjustRouteHandlers mapper
+		# clear route cache
+		do @_clearRCache
 		# chain
 		this
 
+	### clear route cache ###
+	_clearRCache: value: ->
+		@[CACHED_ROUTES] = Object.create null if @[IS_LOADED]

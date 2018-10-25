@@ -24,7 +24,6 @@ Object.defineProperties GridFW.prototype,
 		# add plugin
 		plugName = plugin.name
 		# check it's correct GridFW plugin
-		console.log '---- plugin: ', plugin
 		v = plugin.GridFWVersion
 		throw new Error "Unsupported plugin #{plugName}" unless typeof v is 'string'
 		# check plugin name

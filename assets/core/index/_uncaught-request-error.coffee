@@ -35,6 +35,7 @@ _uncaughtRequestErrorHandler = (err, ctx, app)->
 			defErrKey = '500'
 		# status
 		ctx.statusCode = statusCd
+		ctx.contentType= 'html'
 		# rener template
 		errorTemplates = settings[<%= settings.errorTemplates %>]
 		await ctx.render errorTemplates[errorKey] || errorTemplates[defErrKey], error: err

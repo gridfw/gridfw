@@ -71,7 +71,6 @@ app.listen 3000
 
 # wrap test
 app.wrap '/*', (controller)->
-	console.log '---- exec wra^p'
 	(ctx)->
 		console.log '---- my wrap'
 		app.log 'myWrap', "--- wraping: #{ctx.method} #{ctx.url}"
