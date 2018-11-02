@@ -110,7 +110,6 @@ CONTEXT_PROTO=
 
 #=include _send-response.coffee
 #=include _context-content-types.coffee
-#=include _context-cookies.coffee
 
 gettersOnce CONTEXT_PROTO,
 	### if the request is aborted ###

@@ -145,6 +145,7 @@ _reloadPlugins = (app, plugSettings)->
 	plugSet = new Set Object.keys appPlugs
 	promiseAll = []
 	# add new plugins
+	console.log '----- reload plugins: ', app.s[<%= settings.plugins %>]
 	for k, v of app.s[<%= settings.plugins %>]
 		if plugSet.has k
 			plugSet.remove k
@@ -160,7 +161,9 @@ _reloadPlugins = (app, plugSettings)->
 	if plugSet.size
 		app.info 'PLUGIN', 'Disable removed plugins (Restart app to Remove theme)'
 		plugSet.forEach (k)->
-			promiseAll.push appPlugs[k].disable()
+			if 'disable' in appPlugs[k]
+				app.debug 'PLUGIN', "Disable #{k}"
+				promiseAll.push appPlugs[k].disable()
 	# wait for plugins to be reloaded
 	await Promise.all promiseAll
 	return
