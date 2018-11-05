@@ -98,6 +98,17 @@ CONTEXT_PROTO=
 			@_write chunk, encoding || '<%= app.DEFAULT_ENCODING %>', (err)->
 				if err then reject err
 				else resolve()
+	### Append http header ###
+	addHeader: (name, value)->
+		prev= @getHeader name
+		unless prev
+			prev = []
+		else unless Array.isArray prev
+			prev = [prev]
+		prev.push value
+		@setHeader name, prev
+		# chain
+		this
 
 	### commons with Context ###
 	accepts				: REQUEST_PROTO.accepts
