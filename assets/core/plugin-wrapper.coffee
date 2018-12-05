@@ -9,10 +9,10 @@ class PluginWrapper
 		plugin = require settings.require
 		# asserts
 		app.warn 'PLUGIN', "Plugin [#{name}] registred with different name #{plugin.name}" unless name is plugin.name
-		throw new Error "Method [#{name}].init is missing" unless typeof plugin.init is 'function'
+		# throw new Error "Method [#{name}].init is missing" unless typeof plugin.init is 'function'
 		throw new Error "Method [#{name}].reload is missing" unless typeof plugin.reload is 'function'
 		# init
-		plugin.init app
+		# plugin.init app
 		@app = app
 		@plugin = plugin
 		@name= name
@@ -28,8 +28,6 @@ class PluginWrapper
 		if 'disable' in p
 			app.debug 'PLUGIN', "Disable plugin: #{@name}"
 			await p.disable()
-		else
-			app.warn 'PLUGIN', "Plugin #{@name} has no [disable] method"
 		return
 	enable: ->
 		p = @plugin
@@ -37,8 +35,6 @@ class PluginWrapper
 		if 'enable' in p
 			app.debug 'PLUGIN', "Enable plugin: #{@name}"
 			await p.enable()
-		else
-			app.warn 'PLUGIN', "Plugin #{@name} has no [enable] method"
 		return
 
 module.exports = PluginWrapper

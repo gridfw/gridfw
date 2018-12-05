@@ -1,30 +1,24 @@
 ###
 Add plugins to GridFW
 ###
-REQUIRED_PLUGIN_METHODS = ['init', 'enable', 'disable', 'configure']
+REQUIRED_PLUGIN_METHODS = ['reload']
 Object.defineProperties GridFW.prototype,
 	###*
 	 * Add plugin to GridFW
 	 * @optional @param  {boolean} - enable if enable the plugin @default true
 	 * @param  {Plugin} plugin - GridFW plugin
 	 * @example
-	 * app.plugin(require('gridfw-plugin'))
-	 * app.plugin(false, require('gridfw-plugin'))
+	 * app.plugin(require('gridfw-plugin'), @optional settings)
+	 * app.plugin(false, require('gridfw-plugin'), @optional settings)
 	###
-	plugin: value: (enable, plugin)->
-		switch arguments.length
-			when 1
-				[enable, plugin] = [on, enable]
-			when 2
-			else
-				throw new Error 'Illegal arguments'
+	plugin: value: (enable, plugin, settings)->
+		unless typeof enable is boolean
+			[enable, plugin, settings] = [on, enable, plugin]
 		# check
-		throw new Error 'first argument expected boolean' unless typeof enable is 'boolean'
-		throw new Error 'Illegal arguments' unless plugin
+		throw new Error 'Illegal arguments' unless typeof plugin is 'object' and plugin
 		# add plugin
 		plugName = plugin.name
 		# check it's correct GridFW plugin
-		console.log '---- plugin: ', plugin
 		v = plugin.GridFWVersion
 		throw new Error "Unsupported plugin #{plugName}" unless typeof v is 'string'
 		# check plugin name
@@ -40,8 +34,8 @@ Object.defineProperties GridFW.prototype,
 		plugs = @[PLUGINS]
 		throw new Error "Plugin #{plugName} already set. use \"app.plugin('#{plugName}').configure({...})\" to reconfigure it" if plugs[plugName]
 		plugs[plugName] = plugin
-		# call init
-		await plugin.init this
+		# init plugin
+		await plugin.reload this, settings
 		# enable plugin
 		await plugin.enable() if enable
 		# statup script

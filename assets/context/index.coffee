@@ -53,7 +53,7 @@ CONTEXT_PROTO=
 		if locals
 			Object.setPrototypeOf locals, @locals
 		else
-			locals = @locals
+			locals = Object.create @locals
 		@app._render path, locals
 		.then (html)=>
 			# @contentType = 'text/html'
@@ -94,10 +94,21 @@ CONTEXT_PROTO=
 				else do resolve
 	### response.write(chunk[, encoding], cb) ###
 	write: (chunk, encoding)->
-		new Promise (resolve, reject)->
+		new Promise (resolve, reject)=>
 			@_write chunk, encoding || '<%= app.DEFAULT_ENCODING %>', (err)->
 				if err then reject err
 				else resolve()
+	### Append http header ###
+	addHeader: (name, value)->
+		prev= @getHeader name
+		unless prev
+			prev = []
+		else unless Array.isArray prev
+			prev = [prev]
+		prev.push value
+		@setHeader name, prev
+		# chain
+		this
 
 	### commons with Context ###
 	accepts				: REQUEST_PROTO.accepts
@@ -110,7 +121,6 @@ CONTEXT_PROTO=
 
 #=include _send-response.coffee
 #=include _context-content-types.coffee
-#=include _context-cookies.coffee
 
 gettersOnce CONTEXT_PROTO,
 	### if the request is aborted ###

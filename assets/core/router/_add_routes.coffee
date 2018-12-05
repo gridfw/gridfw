@@ -10,7 +10,7 @@
  **** dynamic path
  * /dynamic/:param1/path/:param2
  * /dynamic/:param/* # the rest of path will be stored inside param called "*"
- * /dynamic/:param/:rest* # the rest of path will be stored in the param "rest"
+ * /dynamic/:param/*rest # the rest of path will be stored in the param "rest"
 ###
 Object.defineProperties GridFW.prototype,
 	###*
@@ -47,14 +47,14 @@ Object.defineProperties GridFW.prototype,
 	 * 		
 	###
 	on: value: (method, route, handler)->
+		# clear route cache
+		do @_clearRCache
 		# Add handlers
 		switch arguments.length
 			# .on 'GET', '/route', handler
 			when 3
 				if typeof handler is 'function'
 					throw new Error 'handler could take only one argument' if handler.length > 1
-					_createRouteNode this, method, route, c: handler
-				else if typeof handler is 'object'
 					_createRouteNode this, method, route, handler
 				else
 					throw new Error 'Illegal handler'
@@ -64,13 +64,13 @@ Object.defineProperties GridFW.prototype,
 			# create new node only if controller is specified, add handler to other routes otherwise
 			when 2
 				# do builder
-				return new _RouteBuiler this, (node)=> _createRouteNode this, method, route, node
+				return new _RouteBuiler this, (handler, descrp)=> _createRouteNode this, method, route, handler, descrp
 			else
 				throw new Error '[app.on] Illegal arguments ' + JSON.stringify arguments
 	###*
 	 * Remove route
 	 * @example
-	 * .off('alll', '/route', hander) # remove this handler (as controller, preprocess, postprocess, errorHander, ...)
+	 * .off('alll', '/route', handler) # remove this handler (as controller, preprocess, postprocess, errorHandler, ...)
 	 * 									from this route for all http methods
 	 * .off('GET', '/route') # remove this route
 	###
@@ -90,12 +90,13 @@ Object.defineProperties GridFW.prototype,
 
 ###*
  * Create route node or add handlers to other routes
+ * @optional @param {object} descrp - other optional params
 ###
-_createRouteNode = (app, method, route, nodeAttrs)->
+_createRouteNode = (app, method, route, handler, descrp)->
 	# flatten method
 	if Array.isArray method
 		for v in method
-			_createRouteNode app, v, route, nodeAttrs
+			_createRouteNode app, v, route, handler, descrp
 		return
 	# check method
 	throw new Error 'method expected string' unless typeof method is 'string'
@@ -104,126 +105,79 @@ _createRouteNode = (app, method, route, nodeAttrs)->
 	# flatten route
 	if Array.isArray route
 		for v in route
-			_createRouteNode app, method, v, nodeAttrs
+			_createRouteNode app, method, v, handler, descrp
 		return
 	# check route
-	throw new Error 'route expected string' unless typeof route is 'string'
-	# prevent "?" symbol and multiple successive slashes
-	throw new Error "Incorrect route: #{route}" if /^\?|\/\?[^:*]|\/\//.test route
-
-	# wait for app to load if not yeat loaded
-	# <!> do not remove "if" to enable sync when app is already loaded
-	await app[APP_STARTING_PROMISE] if app[APP_STARTING_PROMISE]
-
+	assetRoute route
+	
 	# settings
 	settings = app.s
+	ignoreCase = settings[<%= settings.routeIgnoreCase %>]
 	# remove trailingSlash from route
 	unless settings[<%= settings.trailingSlash %>]
 		route = route.slice 0, -1 if route.endsWith '/'
 	# route mast starts width "/"
 	route = '/' + route unless route.startsWith '/'
-	# replace "*"
-	route = route[0...-1] + ':*' if route.endsWith '/*'
+	# fix route
+	# replace '/:' and '/*' with '/?:' and '/?*'
+	# replace '/?:' and '/?*' with '/:' and '/*'
+	originalRoute = route # for debuging
+	route = route.replace /\/([:*?])/g, (_, k)->
+		if k is '?' then '/' else '/?' + k
 	# check if it is a static or dynamic route
-	isDynamic = /\/:|\*$/.test route
-	# route key
-	routeKey = if isDynamic then route.replace(/\/:/g, '/?:') else 
-	# get some already created node if exists
-	allRoutes = app[ALL_ROUTES]
-	ignoreCase = settings[<%= settings.routeIgnoreCase %>]
-	# if dynamic route
+	isDynamic = /\/\?/.test route
+	# lowercase and encode static parts
 	if isDynamic
-		# if has controller, create the route
-		if nodeAttrs.c
-			# lowercase and encode static parts
-			route = route.replace /\/([^:][^\/]*)/g, (v)->
-				v = v.toLowerCase() if ignoreCase
-				encodeurl v
-			# create mapper if not exists
-			routeMapper = allRoutes[routeKey]
-			unless routeMapper
-				routeMapper= allRoutes[routeKey] = new RouteMapper app, route
-			# add handlers to route
-			app.debug 'RTER', 'Add dynamic route: ', method, route
-			routeMapper.append method, nodeAttrs
-			# map dynamic route
-			mapper = _linkDynamicRoute app, route
-			throw new Error "Dynamic mapper already set to: #{method} #{route}" if mapper.$
-			mapper.$$ = routeMapper
-		# else add handler to any route or future route that matches
-		else
-			@_registerRouteHandlers app, route, nodeAttrs
-	# if static route, create node even no controller is specified
+		app.debug 'RTER', "Map dynamic\t: #{method} #{originalRoute}"
+		route = route.replace /\/([^?][^\/]*)/g, (v)->
+			v = v.toLowerCase() if ignoreCase
+			encodeurl v
 	else
-		# convert route to lowercase unless case sensitive
-		route = route.toLowerCase() unless ignoreCase
-		# encode URL
+		app.debug 'RTER', "Map static\t: #{method} #{originalRoute}"
+		route = route.toLowerCase() if ignoreCase
 		route = encodeurl route
-		# create route mapper if not exists
-		routeKey = route.replace /\/\?([:*])/g, '/$1'
-		routeMapper = allRoutes[routeKey]
-		unless routeMapper
-			routeMapper= allRoutes[routeKey] =
-			if route is '/' then app.m else new RouteMapper app, route
-		# add handler to node
-		routeMapper.append method, nodeAttrs
-		# map as static route if has controller
-		if nodeAttrs.c
-			app.debug 'RTER', 'Add static route: ', method, routeKey
-			app[STATIC_ROUTES][routeKey] = routeMapper
+	# get or create route tree
+	mapper = _createRouteTree app, route
+	# add controller
+	if handler
+		throw new Error 'Controller mast be function' unless typeof handler is 'function'
+		app.warn 'RTER', "Route controller overrided: #{method} #{originalRoute}" if mapper[method]
+		mapper[method] = handler
+		mapper['_' + method] = handler
+
+	# optional operations
+	if descrp
+		# wrappers
+		if descrp.wrappers.length
+			app.info 'RTER', "Wrap controller at: #{method} #{originalRoute}"
+			handler = mapper[method]
+			throw new Error 'No controller to wrap at: #{method} #{originalRoute}' unless handler
+			for wrap in descrp.wrappers
+				handler = wrap handler
+				throw new Error "Illegal wrapper response! wrapper: #{wrap}" unless typeof handler is 'function' and handler.length is 1
+			mapper['_' + method] = mapper[method] = handler
+
+	# fix route, add wrappers, and other handlers
+	_AjustRouteHandlers mapper, false
+
+	# add static shortcut
+	unless isDynamic
+		app[STATIC_ROUTES][method + route] = mapper['~' + method] = [1, mapper, handler]
 	# ends
 	return
 
 
 ###*
- * link dynamic route
- * @node_format
- * {
- * 		['/...'] static nodes stats with '/'
- * 		$: params are contained inside $ object
- * 		$$: contains the mapper for this route
- * }
+ * Route wrappers
 ###
-_linkDynamicRouteParamSet = new Set() # reuse this for performance purpose
-_linkDynamicRoute = (app, route)->
-	# if convert static parts to lower case
-	convLowerCase = app.s[<%= settings.routeIgnoreCase %>]
-	# check param names are not duplicated
-	_linkDynamicRouteParamSet.clear()
-	# exec
-	currentNode = app[DYNAMIC_ROUTES]
-	parts = route.split /(?=\/)/
-	partslastIndex = parts.length - 1
-	for part, i in parts
-		console.log '---- part: ', part
-		# if param
-		if part.startsWith '/:'
-			part = part.substr 2
-			isRestOf = false # if this param will contains all the reste of the path
-			# is param ends with *: get all text after the last '/'
-			if part.endsWith '*'
-				throw new Error '"*" Could be used on the lastest param only!' if i isnt partslastIndex
-				part = part[0...-1] if part isnt '*'
-				isRestOf = true
-			# check param is correct
-			throw new Error 'Could not use "__proto__" as param name' if part is '__proto__'
-			throw new Error "Param names mast matche [a-zA-Z0-9_-]. Illegal param: [#{part}] at route: #{route}" unless part is '*' or ROUTE_PARAM_MATCH.test part
-			# uniqueness of param name
-			throw new Error "Dupplicated param name: #{part}" if _linkDynamicRouteParamSet.has part
-			_linkDynamicRouteParamSet.add part
-			# var
-			if isRestOf
-				console.log '--- is reste of'
-				currentNode['*'] ?= Object.create null
-				currentNode = currentNode['*'][part] ?= Object.create null
-			else
-				console.log '--- not reste of: ', part
-				currentNode.$ ?= Object.create null
-				currentNode = currentNode.$[part] ?= Object.create null
-		# if static part
-		else
-			part = part.toLowerCase() if convLowerCase
-			currentNode = currentNode[part] ?= Object.create null
-	# return
-	currentNode
-
+HTTP_SUPPORTED_METHODS.forEach (method)->
+	method = method.toLowerCase()
+	Object.defineProperty GridFW.prototype, method,
+		value: (route, handler)->
+			switch arguments.length
+				when 2
+					@on method, route, handler
+				when 1
+					@on method, route
+				else
+					throw new Error 'Illegal arguments'

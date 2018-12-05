@@ -1,62 +1,118 @@
 ###*
- * resolve route
- * 
- * @route examples
- * /static/route
- * 
- * /test/*
- * /test/cc/dd/*
- * /test/cc/dd/:khalid*
- * /test/cc/dd/:filename*
- * 
- * /test/:var/:cc/mm
+ * resolve routes
+ * @param {GridFW} app - the app
+ * @param {string} method - http method
+ * @param {string} route - route path
 ###
 _resolveRoute = do ->
-	# resolver response
-	resolverResponse =
-		n: null # node
-		p: null # params
-	# error 404 controller
-	# enable caching 404 errors too
-	err404Node= Object.create null,
-		c: value: ->
-			throw ERROR_404
-	# next nodes to visite if current node fails
-	nextNodes = [] # [node, paramLevel, ...]
-	# store params
-	resolvedParams = [] # [paramName, paramValue, ...]
+	# store wildcard nodes
+	wildcardNodes = []
+	staticNodeResult = [1, null, null] # for performance purpose, return this for all static routes
+	# 404 Error node (enable caching)
+	err404NodeHandler = ->
+		throw ERROR_404
+	err404Node =
+		ALL: err404NodeHandler
+	# resolve dynamic route
+	_resolveDynamicRoute = (app, method, route, ignoreCase)->
+		resolvedRoute= [1, err404Node, err404NodeHandler]
+		# init
+		currentNode = app['/']
+		wildcardNodes.length = 0
+		paramIndx = ROUTER_PARAM_STATING_INDEX # excape cacheIndex and node
+		# seek for path
+		parts = route.split '/'
+		`lp://`
+		for part, level in parts
+			# ignore empty parts (case of first, last and mutiple slashes)
+			continue unless part
+			staticPart = '/' + part
+			staticPart = staticPart.toLowerCase() if ignoreCase is 1
+			# add wildcard params to queu if exists
+			if currentNode.c
+				wildcardNodes.push currentNode, paramIndx, level
+			# check if static part
+			node = currentNode[staticPart]
+			if node
+				currentNode = node
+				continue
+			# check for param
+			if currentNode.P
+				for regex, k in currentNode.P
+					if regex.test part
+						# add this param name and value to the stack
+						paramName = currentNode.p[k]
+						resolvedRoute.push paramName, part
+						paramIndx += 2
+						currentNode = currentNode['/?:' + paramName]
+						`continue lp`
+			# route not found as static or parametred
+			currentNode = null
+			break
+		# Route found
+		if currentNode and (handler = currentNode[method] or (method is 'HEAD' and currentNode.GET) or currentNode.ALL)
+			resolvedRoute[1] = currentNode
+			resolvedRoute[2] = handler
+		# check for wild card route
+		else
+			# add current node wildcard
+			if currentNode and currentNode.c
+				wildcardNodes.push currentNode, paramIndx, level + 1
+			# check for closest wildcard route
+			if (i = wildcardNodes.length)
+				params = app.$
+				`wle://`
+				while i > 0
+					# extrat data
+					level = wildcardNodes[--i]
+					paramIndex = wildcardNodes[--i]
+					node = wildcardNodes[--i]
+					# get rest of URL
+					rest = parts.slice(level).join '/'
+					# check if has this method
+					for param, k in node.c
+						currentNode = if param is '*' then node['/?*'] else node['/?*' + param]
+						handler = currentNode[method] or (method is 'HEAD' and currentNode.GET) or currentNode.ALL
+						if handler and params[param][0].test rest
+							resolvedRoute.splice paramIndex
+							resolvedRoute.push param, rest
+							resolvedRoute[1] = currentNode
+							resolvedRoute[2] = handler
+				# 404: page not found
+				resolvedRoute.splice ROUTER_PARAM_STATING_INDEX if resolvedRoute[1] is err404Node
+		# return resolved route
+		resolvedRoute
 	# return resolver
 	(app, method, route)->
-		resolverResponse.p = Object.create null
-		# root node
-		if route is '/'
-			node = app.m[method]
-			if node or ( method is 'HEAD' and (node = app.m.GET)) or (node = app.m.ALL)
-				resolverResponse.n = node
-			else
-				resolverResponse.n = err404Node
-		# child node
+		# settings
+		settings = app.s
+		ignoreCase = settings[<%= settings.routeIgnoreCase %>]
+		# ignore case
+		if ignoreCase is 1
+			route = staticRoute = route.toLowerCase()
+		# ignore static part case only (do not change param values)
+		else if ignoreCase is on
+			staticRoute = route.toLowerCase()
+		# case sensitive
 		else
-			settings = app.s
-			### case sensitive ###
-			ignoreCase = settings[<%= settings.routeIgnoreCase %>]
-			# ignore case: ignore static part and param values too
-			if ignoreCase is 1
-				route = staticRoute = route.toLowerCase()
-			# ignore static part case only (do not change param values)
-			else if ignoreCase is on
-				staticRoute = route.toLowerCase()
-			# case sensitive
-			else
-				staticRoute = route
-			
-			### get route if static ###
-			routeMapper = app[STATIC_ROUTES][staticRoute]
-			### when not static route, look for dynamic one ###
-			if routeMapper and (node = routeMapper[method] or (method is 'HEAD' and (node = routeMapper.GET)) or (node=routeMapper.ALL) )
-				resolverResponse.n = node
+			staticRoute = route
 
-			### resolve dynamic route ###
-			#TODO add cache for dynamic routes and check if it upgride performance
-			
-
+		### get route if static ###
+		staticRoutes = app[STATIC_ROUTES]
+		routeNode = staticRoutes[method + staticRoute] or 
+		method is 'HEAD' and staticRoutes['GET' + staticRoute] or 
+		staticRoutes['ALL' + staticRoute]
+		if routeNode
+			return routeNode
+		# cache logic
+		else if (node = app[CACHED_ROUTES][method + route])
+			++node[0] # inc access count (to remove less access)
+			return node
+		# resolve dynamic route
+		else
+			resolvedRoute = _resolveDynamicRoute app, method, route, ignoreCase
+			# add route to cache
+			app[CACHED_ROUTES][method + route] = resolvedRoute
+			return resolvedRoute
+		# [_cacheLRU, node, handler, param1Name, param1Value, ...]
+		# resolvedRoute

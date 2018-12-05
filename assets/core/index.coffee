@@ -17,9 +17,6 @@ CONTEXT_PROTO= require '../context'
 REQUEST_PROTO= require '../context/request'
 GError		= require '../lib/error'
 
-RouteMapper	= require '../router/route-mapper'
-RouteNode	= require '../router/route-node'
-
 PluginWrapper = require './plugin-wrapper'
 
 # default config
@@ -31,17 +28,24 @@ UNDEFINED=
 	configurable: true
 	writable: true
 EMPTY_OBJ = Object.freeze Object.create null
+EMPTY_REGEX = test: -> true
+EMPTY_FX = (value)-> value
+EMPTY_PARAM_RESOLVER = (ctx, value, type)-> value
+EMPTY_PARAM = [EMPTY_REGEX, EMPTY_PARAM_RESOLVER] # do not change
 # void function (do not change)
 # VOID_FX = ->
 
 # View cache
 VIEW_CACHE = Symbol 'View cache'
 # Routes
-ALL_ROUTES	= Symbol 'All routes'
+# ALL_ROUTES	= Symbol 'All routes'
 STATIC_ROUTES	= Symbol 'Static routes'
-DYNAMIC_ROUTES	= Symbol 'Dynamic routes'
-CACHED_ROUTES	= Symbol 'Cached_routes'
+# DYNAMIC_ROUTES	= Symbol 'Dynamic routes'
 PLUGINS			= Symbol 'Plugins'
+
+# caching routes
+CACHED_ROUTES		= Symbol 'Cached_routes'
+ROUTE_CACHE_INTERVAL= Symbol 'Route cache interval'
 
 # flags
 IS_ENABLED				= Symbol 'is enabled'
@@ -57,13 +61,13 @@ DEFAULT_PROTOCOL = 'http'
 # consts
 HTTP_METHODS = http.METHODS
 HTTP_SUPPORTED_METHODS= [
-	'all' # all methods
-	'get'
-	'head'
-	'post'
-	'put'
-	'patch'
-	'delete'
+	'ALL' # all methods
+	'GET'
+	'HEAD'
+	'POST'
+	'PUT'
+	'PATCH'
+	'DELETE'
 ]
 
 class GridFW
@@ -75,6 +79,8 @@ class GridFW
 	 * @return {[type]}         [description]
 	###
 	constructor: (options)->
+		# print logo
+		_console_logo this
 		# locals
 		locals = Object.create null,
 			app: value: this
@@ -101,17 +107,22 @@ class GridFW
 			locals: value: locals
 			data: value: locals
 			# root RouteMapper
-			m: value: new RouteMapper this, '/'
-			# global param resolvers
-			$: value: Object.create null
+			# m: value: new RouteMapper this, '/'
+			# param resolvers
+			$: value: Object.create null,
+				'*': value: EMPTY_PARAM # wildcard
 			# view cache
 			[VIEW_CACHE]: UNDEFINED
 			# Routes
-			[ALL_ROUTES]: value: Object.create null
+			# [ALL_ROUTES]: value: Object.create null
 			[STATIC_ROUTES]: value: Object.create null
-			[DYNAMIC_ROUTES]: value: Object.create null
+			# [DYNAMIC_ROUTES]: value: Object.create null
+			# route tree
+			'/': value: Object.create null
 			#TODO check if app cache optimise performance for 20 routes
-			# [CACHED_ROUTES]:
+			[CACHED_ROUTES]:
+				value: Object.create null
+				writable: true
 			# plugins
 			[PLUGINS]: value: Object.create null
 		# create context
@@ -124,14 +135,19 @@ class GridFW
 		# run load app
 		@reload options
 		.then =>
-			# print welcome message
-			_console_welcome this
+			# start cache cleaner
+			_routeCacheStart this
+			# add dev utilities
+			if @s[<%= settings.devTools %>]
+				require('../dev')(this)
+
 		.catch (err) =>
 			@fatalError 'CORE', err
 			process.exit()
 		return
 
-
+	# <!> For debug purpose only!
+	@STATIC_ROUTES: STATIC_ROUTES
 # getters
 Object.defineProperties GridFW.prototype,
 	### if the server is listening ###
@@ -166,6 +182,8 @@ loggerFactory CONTEXT_PROTO, level: 'debug'
 #=include index/_query-parser.coffee
 #=include index/_plugin.coffee
 #=include index/_reload.coffee
+#=include index/_route-cache-manager.coffee
+#=include index/_static-files.coffee
 
 # exports
 module.exports = GridFW
