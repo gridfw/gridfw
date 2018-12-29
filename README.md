@@ -18,7 +18,8 @@ app.get('/static/path', function(ctx){});
 app.get('/an/*other/sta**tic/path', function(ctx){});
 // the last "star" must be escaped with "?", so it will not be considered as a wildcard param
 app.get('/an/*other/sta**tic/?*path', function(ctx){});
-// when a word after "/" starts with ":" or "?", it must be escaped with "?", so it will not be considered as a path param
+// when a word after "/" starts with ":" or "?", it must be escaped with "?",
+// so it will not be considered as a path param
 app.get('/st::atic/?:path/??to/src', function(ctx){}); 
 
 // use async function or return promise for asynchrone operations
