@@ -19,7 +19,11 @@
     "routing",
     "framework"
   ],
-  "author": "coredigix",
+  "author": {
+    "name": "coredigix",
+    "email": "contact@coredigix.com",
+    "url": "https://coredigix.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/gridfw/gridfw/issues"
