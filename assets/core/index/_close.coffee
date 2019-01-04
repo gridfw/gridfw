@@ -18,17 +18,22 @@ Object.defineProperties GridFW.prototype,
 					else resolve()
 			else
 				resolve()
+			return
 
 	###*
 	 * Set this property to reject connections when the server's connection count gets high.
 	###
 	maxConnections:
 		get: ->
-			throw new Error 'Server is not set yet'
-			@server?.maxConnections
+			if @server
+				@server.maxConnections
+			else
+				throw new Error 'Server is not set yet'
 		set: (v)->
-			throw new Error 'Server is not set yet'
-			@server.maxConnections = v
+			if @server
+				@server.maxConnections = v
+			else
+				throw new Error 'Server is not set yet'
 			return
 
 

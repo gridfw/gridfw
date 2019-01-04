@@ -33,6 +33,7 @@ class _RouteBuiler
 		controller = @controller
 		throw new Error 'Not controller set!' unless controller.length
 		# Simple controller
+		# TODO add error handlers
 		if controller.length is 2
 			ctrlFx = controller[0]
 		# Promise controller
