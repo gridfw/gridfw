@@ -13,6 +13,9 @@ REQUEST_PROTO = require './request'
 {gettersOnce} = require '../lib/define-getter-once'
 GError			= require '../lib/error'
 
+
+#=include ../commons/_index.coffee
+
 # create empty attribute for performance
 UNDEFINED_=
 	value: undefined
@@ -53,7 +56,7 @@ CONTEXT_PROTO=
 		if locals
 			Object.setPrototypeOf locals, @locals
 		else
-			locals = Object.create @locals
+			locals = _create @locals
 		@app._render path, locals
 		.then (html)=>
 			# @contentType = 'text/html'

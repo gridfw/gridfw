@@ -16,14 +16,14 @@ _createRouteTree = do ->
 			# exec
 			for part in route.split /(?=\/)/
 				# create node
-				node = currentNode[part] ?= Object.create null
+				node = currentNode[part] ?= _create null
 				# if create node
 				unless node
 					if doCreate is false
 						currentNode = null
 						break
 					else
-						node = currentNode[part] = Object.create null
+						node = currentNode[part] = _create null
 				# if param
 				if part.startsWith '/?'
 					isWildcard = part.charAt(2) is '*'

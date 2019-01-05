@@ -12,7 +12,7 @@ Object.defineProperties GridFW.prototype,
 	 * ctx.QueryParser({}, 'param=value&param2=value2')
 	###
 	queryParser: value: (rawQuery)->
-		targetObj = Object.create null
+		targetObj = _create null
 		# [kye, value, ...]
 		result = []
 		if rawQuery

@@ -64,7 +64,7 @@ Object.defineProperties GridFW.prototype,
 			# create new node only if controller is specified, add handler to other routes otherwise
 			when 2
 				# do builder
-				return new _RouteBuiler this, (handler, descrp)=> _createRouteNode this, method, route, handler, descrp
+				return new _RouteBuiler this, (handler)=> _createRouteNode this, method, route, handler
 			else
 				throw new Error '[app.on] Illegal arguments ' + JSON.stringify arguments
 	###*
@@ -92,11 +92,11 @@ Object.defineProperties GridFW.prototype,
  * Create route node or add handlers to other routes
  * @optional @param {object} descrp - other optional params
 ###
-_createRouteNode = (app, method, route, handler, descrp)->
+_createRouteNode = (app, method, route, handler)->
 	# flatten method
 	if Array.isArray method
 		for v in method
-			_createRouteNode app, v, route, handler, descrp
+			_createRouteNode app, v, route, handler
 		return
 	# check method
 	throw new Error 'method expected string' unless typeof method is 'string'
@@ -105,7 +105,7 @@ _createRouteNode = (app, method, route, handler, descrp)->
 	# flatten route
 	if Array.isArray route
 		for v in route
-			_createRouteNode app, method, v, handler, descrp
+			_createRouteNode app, method, v, handler
 		return
 	# check route
 	assetRoute route
@@ -146,16 +146,16 @@ _createRouteNode = (app, method, route, handler, descrp)->
 		mapper['_' + method] = handler
 
 	# optional operations
-	if descrp
-		# wrappers
-		if descrp.wrappers.length
-			app.info 'RTER', "Wrap controller at: #{method} #{originalRoute}"
-			handler = mapper[method]
-			throw new Error 'No controller to wrap at: #{method} #{originalRoute}' unless handler
-			for wrap in descrp.wrappers
-				handler = wrap handler
-				throw new Error "Illegal wrapper response! wrapper: #{wrap}" unless typeof handler is 'function' and handler.length is 1
-			mapper['_' + method] = mapper[method] = handler
+	# if descrp
+	# 	# wrappers
+	# 	if descrp.wrappers.length
+	# 		app.info 'RTER', "Wrap controller at: #{method} #{originalRoute}"
+	# 		handler = mapper[method]
+	# 		throw new Error 'No controller to wrap at: #{method} #{originalRoute}' unless handler
+	# 		for wrap in descrp.wrappers
+	# 			handler = wrap handler
+	# 			throw new Error "Illegal wrapper response! wrapper: #{wrap}" unless typeof handler is 'function' and handler.length is 1
+	# 		mapper['_' + method] = mapper[method] = handler
 
 	# fix route, add wrappers, and other handlers
 	_AjustRouteHandlers mapper, false

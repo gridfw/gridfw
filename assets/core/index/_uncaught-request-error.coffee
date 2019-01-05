@@ -2,7 +2,7 @@
 # Uncaugth Request Errors
 ###
 
-_uncaughtRequestErrorHandler = (err, ctx, app)->
+GridFW::onUncaughtError = _uncaughtRequestErrorHandler = (err, ctx, app)->
 	settings = app.s
 	if err
 		unless err.code?

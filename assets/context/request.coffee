@@ -7,6 +7,8 @@ fresh		= require 'fresh'
 
 {gettersOnce} = require '../lib/define-getter-once'
 
+#=include ../commons/_index.coffee
+
 ### response ###
 REQUEST_PROTO=
 	###*

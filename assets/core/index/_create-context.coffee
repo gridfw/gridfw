@@ -12,7 +12,7 @@ _createContext = (app)->
 		constructor: (socket)->
 			super socket
 			# locals
-			locals = Object.create appLocals,
+			locals = _create appLocals,
 				ctx: value: this
 			# add properties
 			Object.defineProperties this,

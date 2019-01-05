@@ -18,7 +18,7 @@ class _RouteBuiler
 			cb: value: cb
 			app: value: app
 			controller: value: []
-			wrappers: value: []
+			# wrappers: value: []
 			# set timeout to build
 			_build: value: setImmediate => do @build
 		return
@@ -47,7 +47,7 @@ class _RouteBuiler
 					++i
 				p
 		# send response to parent
-		@cb ctrlFx, {wrappers: @wrappers}
+		@cb ctrlFx #, {wrappers: @wrappers}
 		# return parent for chaine
 		@app
 	###*
@@ -77,13 +77,13 @@ class _RouteBuiler
 	###*
 	 * Alias to app.param
 	###
-	param: (name, regex, resolver)->
-		@app.param.apply @app, arguments
-		# chain
-		this
+	# param: (name, regex, resolver)->
+	# 	@app.param.apply @app, arguments
+	# 	# chain
+	# 	this
 	### wrapper ###
-	wrap: (wrapper)->
-		wrappers.push wrapper
-		# chain
-		this
+	# wrap: (wrapper)->
+	# 	wrappers.push wrapper
+	# 	# chain
+	# 	this
 Object.defineProperty _RouteBuiler.prototype, 'end', get: -> do @build

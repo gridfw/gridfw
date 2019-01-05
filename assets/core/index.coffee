@@ -22,15 +22,17 @@ PluginWrapper = require './plugin-wrapper'
 # default config
 CONFIG = require './config'
 
+#=include ../commons/_index.coffee
+
 # create empty attribute for performance
 UNDEFINED=
 	value: undefined
 	configurable: true
 	writable: true
-EMPTY_OBJ = Object.freeze Object.create null
-EMPTY_REGEX = test: -> true
+EMPTY_OBJ = Object.freeze _create null
+EMPTY_REGEX = _create null, test: value: -> true
 EMPTY_FX = (value)-> value
-EMPTY_PARAM_RESOLVER = (ctx, value, type)-> value
+EMPTY_PARAM_RESOLVER = (value, type, ctx)-> value
 EMPTY_PARAM = [EMPTY_REGEX, EMPTY_PARAM_RESOLVER] # do not change
 # void function (do not change)
 # VOID_FX = ->
@@ -82,7 +84,7 @@ class GridFW
 		# print logo
 		_console_logo this
 		# locals
-		locals = Object.create null,
+		locals = _create null,
 			app: value: this
 		#TODO clone context and response
 		# define properties
@@ -109,22 +111,22 @@ class GridFW
 			# root RouteMapper
 			# m: value: new RouteMapper this, '/'
 			# param resolvers
-			$: value: Object.create null,
+			$: value: _create null,
 				'*': value: EMPTY_PARAM # wildcard
 			# view cache
 			[VIEW_CACHE]: UNDEFINED
 			# Routes
-			# [ALL_ROUTES]: value: Object.create null
-			[STATIC_ROUTES]: value: Object.create null
-			# [DYNAMIC_ROUTES]: value: Object.create null
+			# [ALL_ROUTES]: value: _create null
+			[STATIC_ROUTES]: value: _create null
+			# [DYNAMIC_ROUTES]: value: _create null
 			# route tree
-			'/': value: Object.create null
+			'/': value: _create null
 			#TODO check if app cache optimise performance for 20 routes
 			[CACHED_ROUTES]:
-				value: Object.create null
+				value: _create null
 				writable: true
 			# plugins
-			[PLUGINS]: value: Object.create null
+			[PLUGINS]: value: _create null
 		# create context
 		_createContext this
 		# process off listener
