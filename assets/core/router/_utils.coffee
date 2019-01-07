@@ -12,7 +12,8 @@ assetRoute= (route)->
  * - Error handlers
  * - Wrappers
 ###
-_AjustRouteHandlersSequences = ['M', 'E']
+# _AjustRouteHandlersSequences = ['M', 'E']
+_AjustRouteHandlersSequences = ['E']
 _AjustRouteHandlers = (routeMapper, goSubRoutes)->
 	# adjust subroutes
 	if goSubRoutes isnt false

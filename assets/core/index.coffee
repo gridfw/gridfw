@@ -103,6 +103,8 @@ class GridFW
 			host: UNDEFINED
 			port: UNDEFINED
 			path: UNDEFINED
+			# handle request wraping
+			_handleWrappers: value: []
 			# settings
 			s: value: Array CONFIG.config.length
 			# locals

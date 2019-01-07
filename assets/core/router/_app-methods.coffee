@@ -105,50 +105,85 @@ Object.defineProperties GridFW.prototype,
 	###*
 	 * Error handling
 	###
-	# catch: _flattenWrapper (route, handler)->
-
-	# catch: _flattenRouteWrapper (route, handler)->
-	# 	# check handler
-	# 	throw new Error 'Error handler expected function' unless typeof handler is 'function'
-	# 	# convert middleware express like to gridwf
-	# 	if handler.length is 4
-	# 		orHandler = handler
-	# 		@warn 'RTER', 'Use of ExpressJS like Error handler'
-	# 		handler = (ctx)->
-	# 			new Promise (resolve, reject)->
-	# 				orHandler ctx.error, ctx.req, ctx, (err)->
-	# 					if err
-	# 						reject err
-	# 					else
-	# 						do resolve
-	# 	# convert express error handler 
-	# 	else unless handler.length in [1, 2]
-	# 		throw new Error 'Error handler expect function(err, ctx){}. (or ExpressJS error handler)'
-	# 	# 
-	# 	mapper = _createRouteTree this, route
-	# 	(mapper.E ?= []).push handler
-	# 	(mapper.e ?= []).push handler
-	# 	# propagate middleware to subroutes
-	# 	_AjustRouteHandlers mapper
-	# 	# chain
-	# 	this
+	catch: (route, handler)->
+		# flatten routes
+		if Array.isArray route
+			for v in route
+				@catch v, handler
+			return
+		# check arguments
+		switch arguments.length
+			when 2
+			when 1
+				[route, handler] = ['/', route]
+			else
+				throw new Error 'Illegal arguments'
+		throw new Error 'Handler expected function' unless typeof handler is 'function'
+		# adjust route (remove /*)
+		if route is '/*'
+			route = '/'
+		else if route.endsWith '/*'
+			route = route.slice 0, -2
+		# add error handler
+		mapper = _createRouteTree this, route
+		(mapper.E ?= []).push handler
+		(mapper.e ?= []).push handler
+		# propagate middleware to subroutes
+		_AjustRouteHandlers mapper
+		# chain
+		this
 	###*
 	 * wrap request
 	 * #TODO
 	###
-	# wrap: _flattenRouteWrapper (route, handler)->
-	# 	# check handler
-	# 	throw new Error 'Wrapper expected function' unless typeof handler is 'function'
-	# 	throw new Error "Wrapper[@{route}] format expected: function wrapper(controller){return function(ctx){}}" unless handler.length is 1
-	# 	mapper = _createRouteTree this, route
-	# 	(mapper.W ?= []).push handler
-	# 	(mapper.w ?= []).push handler
-	# 	_AjustRouteHandlers mapper
-	# 	# clear route cache
-	# 	do @_clearRCache
-	# 	# chain
-	# 	this
-
+	wrap: (route, handler)->
+		switch arguments.length
+			# route wrapping
+			when 2
+				# check handler
+				throw new Error 'Wrapper expected function' unless typeof handler is 'function'
+				throw new Error "Wrapper[@{route}] format expected: function wrapper(controller){return function(ctx){}}" unless handler.length is 1
+				mapper = _createRouteTree this, route
+				(mapper.W ?= []).push handler
+				(mapper.w ?= []).push handler
+				_AjustRouteHandlers mapper
+				# clear route cache
+				do @_clearRCache
+			# request handling wrapping
+			when 1
+				handler = route
+				throw new Error 'Wrapper expected function' unless typeof handler is 'function'
+				@_handleWrappers.push handler
+				# create new handler
+				_rebuildRequestHandler this
+			# error
+			else
+				throw new Error 'Illegal arguments'
+		# chain
+		this
+	unwrap: (route, handler)->
+		switch arguments.length
+			# remove wrapper from route
+			when 2
+				mapper = _createRouteTree this, route, no
+				if mapper
+					_arrayRemove mapper.W, handler if mapper.W
+					_arrayRemove mapper.w, handler if mapper.w
+					_AjustRouteHandlers mapper
+					# clear route cache
+					do @_clearRCache
+			# remove wrapper from request handler
+			when 1
+				_arrayRemove @_handleWrappers, handler
+				_rebuildRequestHandler this
+			else
+				throw new Error 'Illegal arguments'
+		# chain
+		this
 	### clear route cache ###
 	_clearRCache: value: ->
 		@[CACHED_ROUTES] = _create null if @[IS_LOADED]
+
+### rebuild request handler ###
+_rebuildRequestHandler = (app)->
+	#TODO
