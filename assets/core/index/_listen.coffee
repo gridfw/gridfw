@@ -45,7 +45,7 @@ GridFW::listen= (options)->
 					# get port and host
 					info = server.address()
 					# bind basic data
-					Object.defineProperties this,
+					_defineProperties this,
 						server	: value: server
 						port	: value: info.port
 						ip		: value: info.address

@@ -120,7 +120,7 @@ CONTEXT_PROTO=
 	acceptsLanguages	: REQUEST_PROTO.acceptsLanguages
 
 # promisify native functions
-# Object.defineProperties 
+# _defineProperties 
 
 #=include _send-response.coffee
 #=include _context-content-types.coffee

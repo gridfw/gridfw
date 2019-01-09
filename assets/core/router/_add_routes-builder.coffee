@@ -14,7 +14,7 @@
 ###
 class _RouteBuiler
 	constructor: (app, cb)->
-		Object.defineProperties this,
+		_defineProperties this,
 			cb: value: cb
 			app: value: app
 			controller: value: []
@@ -86,4 +86,4 @@ class _RouteBuiler
 	# 	wrappers.push wrapper
 	# 	# chain
 	# 	this
-Object.defineProperty _RouteBuiler.prototype, 'end', get: -> do @build
+_defineProperty _RouteBuiler.prototype, 'end', get: -> do @build

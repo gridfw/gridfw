@@ -4,7 +4,7 @@ disable
 reload
 ###
 
-Object.defineProperties GridFW.prototype,
+_defineProperties GridFW.prototype,
 	###*
 	 * Is app enabled
 	 * @return {boolean}
@@ -73,7 +73,7 @@ _reloadApp = (app, options)->
 	await _reloadSettings app, options
 	# set logger settings
 	unless Reflect.hasOwnProperty app, 'logLevel'
-		Object.defineProperties app,
+		_defineProperties app,
 			logLevel:
 				get: -> appSettings[<%= settings.logLevel %>]
 				set: (level)->

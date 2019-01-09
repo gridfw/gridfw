@@ -1,7 +1,7 @@
 
 
 
-Object.defineProperties GridFW.prototype,
+_defineProperties GridFW.prototype,
 	###*
 	 * parse query
 	 * enable user to define an other query parser,

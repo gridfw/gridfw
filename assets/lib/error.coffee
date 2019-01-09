@@ -16,7 +16,7 @@ class GError extends Error
 	###
 	constructor: (code, message, extra)->
 		super message
-		Object.defineProperties this,
+		_defineProperties this,
 			code: value: code
 			extra: value: extra
 	### convert to JSON ###

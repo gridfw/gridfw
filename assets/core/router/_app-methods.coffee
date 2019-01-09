@@ -11,21 +11,21 @@
 # 	route
 
 ### flatten routes ###
-_flattenWrapper = (fx)->
-	value: (route, handler)->
-		# check arguments
-		switch arguments.length
-			when 2
-			when 1
-				[route, handler] = ['/', route]
-			else
-				throw new Error 'Illegal arguments'
-		throw new Error "handler expected function" unless typeof handler is 'function'
-		fx.call this, route, handler
-		return this
+# _flattenWrapper = (fx)->
+# 	value: (route, handler)->
+# 		# check arguments
+# 		# switch arguments.length
+# 		# 	when 2
+# 		# 	when 1
+# 		# 		[route, handler] = ['/', route]
+# 		# 	else
+# 		# 		throw new Error 'Illegal arguments'
+# 		throw new Error "handler expected function" unless typeof handler is 'function'
+# 		fx.call this, route, handler
+# 		return this
 
 ### add methods ###
-Object.defineProperties GridFW.prototype,
+_defineProperties GridFW.prototype,
 	###*
 	* add param
 	* @see doc::param
@@ -114,6 +114,7 @@ Object.defineProperties GridFW.prototype,
 		# check arguments
 		switch arguments.length
 			when 2
+				break
 			when 1
 				[route, handler] = ['/', route]
 			else

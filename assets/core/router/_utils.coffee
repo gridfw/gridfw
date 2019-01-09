@@ -64,7 +64,6 @@ _adjustRouteMapper = (mapper)->
 				controller = ref[i] controller
 				throw new Error "Illegal wrapper response! wrapper: #{ref[i]}" unless typeof controller is 'function' and controller.length is 1
 				--i
-		console.log 'mapper>> ',method
 		# replace with new controller
 		mapper[method] = controller
 		# if is static route

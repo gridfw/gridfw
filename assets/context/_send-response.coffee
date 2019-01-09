@@ -1,5 +1,5 @@
 
-Object.defineProperties CONTEXT_PROTO,
+_defineProperties CONTEXT_PROTO,
 	###*
 	 * set status code
 	###

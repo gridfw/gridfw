@@ -12,7 +12,7 @@
  * /dynamic/:param/* # the rest of path will be stored inside param called "*"
  * /dynamic/:param/*rest # the rest of path will be stored in the param "rest"
 ###
-Object.defineProperties GridFW.prototype,
+_defineProperties GridFW.prototype,
 	###*
 	 * Add a route
 	 * @example
@@ -172,7 +172,7 @@ _createRouteNode = (app, method, route, handler)->
 ###
 HTTP_SUPPORTED_METHODS.forEach (method)->
 	method = method.toLowerCase()
-	Object.defineProperty GridFW.prototype, method,
+	_defineProperty GridFW.prototype, method,
 		value: (route, handler)->
 			switch arguments.length
 				when 2

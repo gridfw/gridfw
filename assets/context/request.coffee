@@ -145,4 +145,4 @@ props=
 	acceptsLanguages: value: ->
 		acc = @_accepts
 		acc.languages.apply acc, arguments
-Object.defineProperties REQUEST_PROTO, props
+_defineProperties REQUEST_PROTO, props

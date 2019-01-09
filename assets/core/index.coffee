@@ -88,7 +88,7 @@ class GridFW
 			app: value: this
 		#TODO clone context and response
 		# define properties
-		Object.defineProperties this,
+		_defineProperties this,
 			# flags
 			[REQ_HANDLER]: UNDEFINED
 			[IS_ENABLED]: UNDEFINED
@@ -153,14 +153,14 @@ class GridFW
 	# <!> For debug purpose only!
 	@STATIC_ROUTES: STATIC_ROUTES
 # getters
-Object.defineProperties GridFW.prototype,
+_defineProperties GridFW.prototype,
 	### if the server is listening ###
 	listening: get: -> @server?.listening || false
 	# framework version
 	version: value: PKG.version
 
 # consts
-Object.defineProperties GridFW,
+_defineProperties GridFW,
 	# consts
 	DEV_MODE: value: <%= app.DEV %>
 	PROD_MODE: value: <%= app.PROD %>

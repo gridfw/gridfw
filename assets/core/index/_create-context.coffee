@@ -15,7 +15,7 @@ _createContext = (app)->
 			locals = _create appLocals,
 				ctx: value: this
 			# add properties
-			Object.defineProperties this,
+			_defineProperties this,
 				# locals
 				locals: value: locals
 				data: value: locals
@@ -31,20 +31,20 @@ _createContext = (app)->
 		# request class
 		@Request: AppRequest
 	# add app fields
-	Object.defineProperties AppContext.prototype,
+	_defineProperties AppContext.prototype,
 		app: value: app
 		s: value: app.s
 		_end: value: AppContext::end
 		_write: value: AppContext::write
-	Object.defineProperties AppRequest.prototype,
+	_defineProperties AppRequest.prototype,
 		app: value: app
 		s: value: app.s
 	# add methods to prototype
-	Object.defineProperties AppContext.prototype, Object.getOwnPropertyDescriptors CONTEXT_PROTO
-	Object.defineProperties AppRequest.prototype, Object.getOwnPropertyDescriptors REQUEST_PROTO
+	_defineProperties AppContext.prototype, Object.getOwnPropertyDescriptors CONTEXT_PROTO
+	_defineProperties AppRequest.prototype, Object.getOwnPropertyDescriptors REQUEST_PROTO
 
 	# add to app
-	Object.defineProperties app,
+	_defineProperties app,
 		Context: value: AppContext
 		Request: value: AppRequest
 	return

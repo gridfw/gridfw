@@ -3,7 +3,7 @@ Stop connections
 Shutdown the process
 ###
 
-Object.defineProperties GridFW.prototype,
+_defineProperties GridFW.prototype,
 	###*
 	 * Stop the server
 	 * wait for existing connections to be finished
