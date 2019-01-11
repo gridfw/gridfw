@@ -4,6 +4,18 @@ disable
 reload
 ###
 
+# enable app
+_enableApp = (app) ->
+	# waiting for app to starts
+	unless app[IS_LOADED] and not app[APP_STARTING_PROMISE]
+		await app.reload()
+	# listen into server
+	app.server.on 'request', @[REQ_HANDLER] = @handle.bind this
+	# clear enabling flag
+	app[APP_ENABLING_PROMISE] = null
+	# return
+	return
+
 _defineProperties GridFW.prototype,
 	###*
 	 * Is app enabled
@@ -19,12 +31,7 @@ _defineProperties GridFW.prototype,
 	enable: value: ->
 		return if @[IS_ENABLED]
 		throw new Error 'Server not yeat set' unless @server
-		# waiting for app to starts
-		unless @[IS_LOADED] and not @[APP_STARTING_PROMISE]
-			await @reload()
-		# listen into server
-		@server.on 'request', @[REQ_HANDLER] = @handle.bind this
-		# return
+		await @[APP_ENABLING_PROMISE] ?= _enableApp app
 		return
 	###*
 	 * Disable app
@@ -33,8 +40,7 @@ _defineProperties GridFW.prototype,
 	disable: value: ->
 		return unless @[IS_ENABLED]
 		# remove listener
-		if @[REQ_HANDLER]
-			@server.off 'request', @[REQ_HANDLER]
+		@server.off 'request', @[REQ_HANDLER] if @[REQ_HANDLER]
 		# return
 		return
 	###*
@@ -72,16 +78,6 @@ _reloadApp = (app, options)->
 	# reload settings
 	await _reloadSettings app, options
 	# set logger settings
-	unless Reflect.hasOwnProperty app, 'logLevel'
-		_defineProperties app,
-			logLevel:
-				get: -> appSettings[<%= settings.logLevel %>]
-				set: (level)->
-					consoleMode = if appSettings[<%= settings.mode %>] is <%= app.DEV %> then 'dev' else 'prod'
-					loggerFactory app, level: level, mode: consoleMode
-					loggerFactory app.Context.prototype, level: level, mode: consoleMode
-					appSettings[<%= settings.logLevel %>] = level
-					return
 	app.logLevel = appSettings[<%= settings.logLevel %>]
 	# if use view cache
 	app.debug 'CORE', 'Empty view cache'
@@ -123,7 +119,7 @@ _reloadSettings = (app, options)->
 		checkSettings = CONFIG.check
 		# check options
 		for k,v of options
-			throw new Error "Illegal option: #{k}" unless checkSettings[k]
+			throw new Error "Unknown option: #{k}" unless checkSettings[k]
 			checkSettings[k] v
 			# copy to settings
 			appSettings[configKies[k]] = v
@@ -145,7 +141,6 @@ _reloadPlugins = (app, plugSettings)->
 	plugSet = new Set Object.keys appPlugs
 	promiseAll = []
 	# add new plugins
-	console.log '----- reload plugins: ', app.s[<%= settings.plugins %>]
 	for k, v of app.s[<%= settings.plugins %>]
 		if plugSet.has k
 			plugSet.remove k
@@ -162,7 +157,6 @@ _reloadPlugins = (app, plugSettings)->
 		app.info 'PLUGIN', 'Disable removed plugins (Restart app to Remove theme)'
 		plugSet.forEach (k)->
 			if 'disable' in appPlugs[k]
-				app.debug 'PLUGIN', "Disable #{k}"
 				promiseAll.push appPlugs[k].disable()
 	# wait for plugins to be reloaded
 	await Promise.all promiseAll

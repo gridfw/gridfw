@@ -10,8 +10,6 @@ encodeurl	= require 'encodeurl'
 
 loggerFactory = require 'gridfw-logger'
 
-compareVersion = require 'compare-versions'
-
 PKG			= require '../../package.json'
 CONTEXT_PROTO= require '../context'
 REQUEST_PROTO= require '../context/request'
@@ -53,6 +51,7 @@ ROUTE_CACHE_INTERVAL= Symbol 'Route cache interval'
 IS_ENABLED				= Symbol 'is enabled'
 IS_LOADED				= Symbol 'is loaded' # is app loaded (all settings are set)
 APP_STARTING_PROMISE	= Symbol 'app starting promise' # loading promise
+APP_ENABLING_PROMISE	= Symbol 'app enabling promise' # loading promise
 REQ_HANDLER				= Symbol 'request handler'
 APP_OPTIONS				= Symbol 'App starting options' # used as flag for @reload
 
@@ -94,6 +93,7 @@ class GridFW
 			[IS_ENABLED]: UNDEFINED
 			[IS_LOADED]: UNDEFINED
 			[APP_STARTING_PROMISE]: UNDEFINED
+			[APP_ENABLING_PROMISE]: UNDEFINED
 			[APP_OPTIONS]: UNDEFINED
 			# mode
 			mode: get: -> @s[<%=settings.mode %>]
@@ -174,7 +174,16 @@ _defineProperties GridFW,
 	# framework version
 	version: value: PKG.version
 
-# default logger
+# Logger
+_defineProperties GridFW.prototype,
+	logLevel:
+		get: -> @s[<%= settings.logLevel %>]
+		set: (level)->
+			consoleMode = if @s[<%= settings.mode %>] is <%= app.DEV %> then 'dev' else 'prod'
+			loggerFactory app, level: level, mode: consoleMode
+			loggerFactory app.Context.prototype, level: level, mode: consoleMode
+			@s[<%= settings.logLevel %>] = level
+			return
 loggerFactory GridFW.prototype, level: 'debug'
 loggerFactory CONTEXT_PROTO, level: 'debug'
 

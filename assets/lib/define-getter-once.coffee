@@ -1,3 +1,4 @@
+'use strict'
 ###
 this function will add a getter with a called once function
 the result value will be cached in the object
