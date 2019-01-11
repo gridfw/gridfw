@@ -2,6 +2,7 @@
 this function will add a getter with a called once function
 the result value will be cached in the object
 ###
+#=include ../commons/_index.coffee
 module.exports =
 	# define one getter one
 	getterOnce: (proto, name, genFx)->

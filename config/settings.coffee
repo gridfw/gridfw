@@ -23,18 +23,18 @@ exports.settings=
 			throw new Error 'Name expected string' unless typeof value is 'string'
 	###* Author ###
 	author:
-		value: 'GridFW@coredigix'
+		value: '-'
 		check: (value)->
 			throw new Error 'Author expected string' unless typeof value is 'string'
 	###* Admin Email ###
 	email: 
-		value: 'contact@coredigix.com'
+		value: '-'
 		check: (value)->
 			throw new Error 'Email expected string' unless typeof value is 'string'
 
 	####<========================== LISTENING =======================>####
 	port: 
-		value: 0 # arbitrary port
+		value: 0 # Random port
 		check: (value)->
 			throw new Error 'Listening port expected positive integer' unless Number.isSafeInteger(value) and value >= 0
 	protocol:
@@ -183,9 +183,9 @@ exports.settings=
 			return
 	# plugins
 	plugins:
-		value:
-			'cookie-parser':
-				require: '../../../gridfw-cookie'
+		value: {}
+			# 'cookie-parser':
+			# 	require: '../../../gridfw-cookie'
 		# default: (app, mode)->
 		# 	# dev or prod
 		# 	isDev = mode is 0

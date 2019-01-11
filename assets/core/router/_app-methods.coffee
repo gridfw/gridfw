@@ -31,9 +31,10 @@ _defineProperties GridFW.prototype,
 	* @see doc::param
 	###
 	param: value: (options)->
-		throw new Error 'Illegal arguments' unless arguments.length is 1 and typeof options is 'object' and options
+		# check options
+		_checkOptions 'app.params', arguments, ['name'], ['matches', 'resolver']
 		paramName = options.name
-		throw new Error 'Param name is required and expected string' unless typeof paramName is 'string'
+		throw new Error 'Param name expected string' unless typeof paramName is 'string'
 		# prepare options
 		if options.resolver or options.matches
 			# matches
@@ -105,7 +106,7 @@ _defineProperties GridFW.prototype,
 	###*
 	 * Error handling
 	###
-	catch: (route, handler)->
+	catch: value: (route, handler)->
 		# flatten routes
 		if Array.isArray route
 			for v in route
@@ -137,7 +138,7 @@ _defineProperties GridFW.prototype,
 	 * wrap request
 	 * #TODO
 	###
-	wrap: (route, handler)->
+	wrap: value: (route, handler)->
 		switch arguments.length
 			# route wrapping
 			when 2
@@ -187,4 +188,11 @@ _defineProperties GridFW.prototype,
 
 ### rebuild request handler ###
 _rebuildRequestHandler = (app)->
-	#TODO
+	handlerFx = _handleRequestCore
+	for h in app._handleWrappers
+		handlerFx = h handlerFx
+		throw new Error 'Handler expected function' unless typeof handlerFx is 'function'
+	_defineProperty app, 'h',
+		value: handlerFx
+		configurable: on
+	return

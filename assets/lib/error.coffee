@@ -8,6 +8,7 @@
  *
  * EISDIR: Directory error
 ###
+#=include ../commons/_index.coffee
 class GError extends Error
 	###*
 	 * Error

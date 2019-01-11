@@ -127,6 +127,10 @@ class GridFW
 			[CACHED_ROUTES]:
 				value: _create null
 				writable: true
+			# request handler
+			h:
+				value: _handleRequestCore
+				configurable: on
 			# plugins
 			[PLUGINS]: value: _create null
 		# create context

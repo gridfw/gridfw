@@ -45,17 +45,21 @@ app.get '/test hello/:var/:var2', (ctx)->
 	ctx.send 'got great results'
 
 # test of route builder
-app.get '/builder/:mm/:p'
-	.param 'p', /^\d+$/, (ctx, data)->
-		ctx.info 'myService', 'Resolve param "p"'
-		ctx.debug 'myService', 'data: ', data
-		return 'ppppmmmm-----'
-	.then (ctx)->
-		console.log '--- raw params: ', ctx.rawParams
-		console.log '--- params: ', ctx.params
-		console.log '---- param[mm] ', ctx.params.mm
-		console.log '---- param[p] ', ctx.params.p
-		ctx.send 'builder works'
+app
+	.param
+		name:'p'
+		matches: /^\d+$/
+		resolver: (ctx, data)->
+			ctx.info 'myService', 'Resolve param "p"'
+			ctx.debug 'myService', 'data: ', data
+			return 'ppppmmmm-----'
+	.get '/builder/:mm/:p'
+		.then (ctx)->
+			console.log '--- raw params: ', ctx.rawParams
+			console.log '--- params: ', ctx.params
+			console.log '---- param[mm] ', ctx.params.mm
+			console.log '---- param[p] ', ctx.params.p
+			ctx.send 'builder works'
 
 
 app.get '/asterix/*', (ctx)->

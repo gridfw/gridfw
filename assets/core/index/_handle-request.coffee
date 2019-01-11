@@ -70,51 +70,23 @@ _handleRequest = (req, ctx)->
 			res: value: ctx
 			ctx: value: ctx
 			req: value: req
-		# ...
-	catch e
-		# ...
-	
+		# execute request handling
+		await @h ctx
+	catch err
+		ctx.fatalError 'HANDLE-REQUEST', err
+	finally
+		# close the request if not yeat closed
+		unless ctx.finished
+			ctx.warn 'HANDLE-REQUEST', 'Request leaved open!'
+			await ctx.end()
 ###* wrappable request handler ###
 _handleRequestCore = (ctx)->
 	try
-		# settings
-		settings = @s
-		# path
-		# url = req.url
-		# i = url.indexOf '?'
-		# if i is -1
-		# 	rawPath = url
-		# 	rawUrlQuery = null
-		# else
-		# 	rawPath = url.substr 0, i
-		# 	rawUrlQuery = url.substr i + 1
-		# # basic ctx attributes
-		# _defineProperties ctx,
-		# 	req: value: req
-		# 	res: value: ctx
-		# 	# url
-		# 	method: value: method
-		# 	url: value: req.url
-		# # add to request
-		# _defineProperties req,
-		# 	res: value: ctx
-		# 	ctx: value: ctx
-		# 	req: value: req
 		# get route mapper
 		# [_cacheLRU, node, param1Name, param1Value, ...]
 		routeDescriptor = _resolveRoute this, ctx.method, ctx.path
 		routeNode = routeDescriptor[1]
 		controllerHandler = routeDescriptor[2]
-		# params = _create null
-		# parse query params
-		# queryParams = _create null
-		# add context attributes
-		# _defineProperties ctx,
-		# 	# url
-		# 	# path: value: rawPath
-		# 	query: value: queryParams
-		# 	# params
-		# 	params: value: params
 		# resolve path params
 		rawPI = ROUTER_PARAM_STATING_INDEX
 		rawPLen = routeDescriptor.length
@@ -141,14 +113,6 @@ _handleRequestCore = (ctx)->
 						paramValue[k] = await ref2[1] v, <%= app.QUERY_PARAM %>, ctx
 				else
 					queryParams[paramName] = await ref2[1] paramValue, <%= app.QUERY_PARAM %>, ctx
-		# execute middlewares
-		if routeNode.m
-			for handler in routeNode.m
-				await handler ctx
-		# execute filters
-		# if routeNode.f
-		# 	for handler in routeNode.f
-		# 		await handler ctx
 		# execute Controller
 		v = await controllerHandler ctx
 		unless ctx.finished
@@ -159,10 +123,6 @@ _handleRequestCore = (ctx)->
 			else
 				await ctx.render v
 				#TODO
-		# execute post processes
-		# if ctx.p
-		# 	for handler in routeNode.p
-		# 		await handler ctx
 	catch err
 		# excute user defined error handlers
 		if routeNode?.e
@@ -175,12 +135,7 @@ _handleRequestCore = (ctx)->
 					err = e
 		if err
 			await _uncaughtRequestErrorHandler err, ctx, this
-			.catch (err)=> @fatalError 'HANDLE-REQUEST', err
-	finally
-		# close the request if not yeat closed
-		unless ctx.finished
-			ctx.warn 'HANDLE-REQUEST', 'Request leaved open!'
-			await ctx.end()
+			.catch (err)=> ctx.fatalError 'HANDLE-REQUEST', err
 	return
 ###*
  * Handle incomming request
@@ -189,6 +144,7 @@ _defineProperties GridFW.prototype,
 	###*
 	 * Handle incomming request
 	###
+	h: value: _handleRequestCore
 	handle: value: _handleRequest
 	###*
 	 * get route Mapper and resolve params
