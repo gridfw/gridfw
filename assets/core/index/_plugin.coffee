@@ -1,7 +1,6 @@
 ###
 Add plugins to GridFW
 ###
-REQUIRED_PLUGIN_METHODS = ['reload']
 _defineProperties GridFW.prototype,
 	###*
 	 * Add plugin to GridFW

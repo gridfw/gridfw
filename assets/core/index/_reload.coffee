@@ -10,7 +10,7 @@ _enableApp = (app) ->
 	unless app[IS_LOADED] and not app[APP_STARTING_PROMISE]
 		await app.reload()
 	# listen into server
-	app.server.on 'request', @[REQ_HANDLER] = @handle.bind this
+	app.server.on 'request', app[REQ_HANDLER] = app.handle.bind app
 	# clear enabling flag
 	app[APP_ENABLING_PROMISE] = null
 	# return
@@ -31,7 +31,7 @@ _defineProperties GridFW.prototype,
 	enable: value: ->
 		return if @[IS_ENABLED]
 		throw new Error 'Server not yeat set' unless @server
-		await @[APP_ENABLING_PROMISE] ?= _enableApp app
+		await @[APP_ENABLING_PROMISE] ?= _enableApp this
 		return
 	###*
 	 * Disable app
@@ -90,7 +90,7 @@ _reloadApp = (app, options)->
 	else
 		app[VIEW_CACHE] = null
 	# reload plugins
-	await _reloadPlugins app, appSettings[<%= settings.plugins %>]
+	await _reloadPlugins app
 	return
 
 ### reload settings ###
@@ -136,7 +136,7 @@ _reloadSettings = (app, options)->
 ###*
  * Reload plugins
 ###
-_reloadPlugins = (app, plugSettings)->
+_reloadPlugins = (app)->
 	appPlugs= app[PLUGINS]
 	plugSet = new Set Object.keys appPlugs
 	promiseAll = []
@@ -151,7 +151,7 @@ _reloadPlugins = (app, plugSettings)->
 				appPlugs[k] = new PluginWrapper app, k, v
 		else
 			appPlugs[k]= new PluginWrapper app, k, v
-		promiseAll.push appPlugs[k].reload app, v
+		promiseAll.push appPlugs[k].reload v
 	# disable removed plugins
 	if plugSet.size
 		app.info 'PLUGIN', 'Disable removed plugins (Restart app to Remove theme)'

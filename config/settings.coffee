@@ -183,9 +183,11 @@ exports.settings=
 			return
 	# plugins
 	plugins:
-		value: {}
-			# 'cookie-parser':
-			# 	require: '../../../gridfw-cookie'
+		value:
+			'gridfw-cookie':
+				require: '../../../gridfw-cookie'
+				# config
+				secret: 'gw'
 		# default: (app, mode)->
 		# 	# dev or prod
 		# 	isDev = mode is 0

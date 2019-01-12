@@ -180,8 +180,8 @@ _defineProperties GridFW.prototype,
 		get: -> @s[<%= settings.logLevel %>]
 		set: (level)->
 			consoleMode = if @s[<%= settings.mode %>] is <%= app.DEV %> then 'dev' else 'prod'
-			loggerFactory app, level: level, mode: consoleMode
-			loggerFactory app.Context.prototype, level: level, mode: consoleMode
+			loggerFactory this, level: level, mode: consoleMode
+			loggerFactory @Context.prototype, level: level, mode: consoleMode
 			@s[<%= settings.logLevel %>] = level
 			return
 loggerFactory GridFW.prototype, level: 'debug'
