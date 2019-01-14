@@ -65,6 +65,11 @@ _handleRequest = (req, ctx)->
 			# params
 			params: value: _create null
 			query: value: queryParams
+			# post body
+			body:
+				value: undefined
+				writable: on
+				configurable: on
 		# add to request
 		_defineProperties req,
 			res: value: ctx

@@ -39,6 +39,10 @@ copyViews= ->
 	gulp.src 'assets/views/**/*.pug'
 	.pipe gulp.dest 'build/views/'
 	.on 'error', errorHandler
+copyTestViews= ->
+	gulp.src 'assets-test/**/*.pug'
+	.pipe gulp.dest 'test/'
+	.on 'error', errorHandler
 
 # compile test files
 compileTest = ->
@@ -52,6 +56,7 @@ watch = ->
 	gulp.watch ['assets/**/*.coffee'], compileCoffee
 	gulp.watch ['assets/views/**/*.pug'], copyViews
 	gulp.watch ['assets-test/**/*.coffee'], compileTest
+	gulp.watch ['assets-test/**/*.pug'], copyTestViews
 	return
 
 # error handler
@@ -93,4 +98,4 @@ errorHandler= (err)->
 	return
 
 # default task
-gulp.task 'default', gulp.series compileConfig, execConfig, compileCoffee, copyViews, compileTest, watch
+gulp.task 'default', gulp.series compileConfig, execConfig, compileCoffee, copyViews, compileTest, copyTestViews, watch

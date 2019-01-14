@@ -147,7 +147,7 @@ _reloadPlugins = (app)->
 			unless appPlugs[k].path is v.require
 				app.warn 'PLUGIN',
 					"Plugin [#{k}] require path changed from [#{appPlugs[k].path}] to [#{v.require}]. Old version will be disabled only, restart app in case of problems"
-				promiseAll.push appPlugs[k].disable()
+				promiseAll.push appPlugs[k].remove()
 				appPlugs[k] = new PluginWrapper app, k, v
 		else
 			appPlugs[k]= new PluginWrapper app, k, v
@@ -156,8 +156,7 @@ _reloadPlugins = (app)->
 	if plugSet.size
 		app.info 'PLUGIN', 'Disable removed plugins (Restart app to Remove theme)'
 		plugSet.forEach (k)->
-			if 'disable' in appPlugs[k]
-				promiseAll.push appPlugs[k].disable()
+			promiseAll.push appPlugs[k].remove()
 	# wait for plugins to be reloaded
 	await Promise.all promiseAll
 	return

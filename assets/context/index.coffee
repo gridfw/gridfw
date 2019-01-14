@@ -118,6 +118,7 @@ CONTEXT_PROTO=
 	acceptsEncodings	: REQUEST_PROTO.acceptsEncodings
 	acceptsCharsets		: REQUEST_PROTO.acceptsCharsets
 	acceptsLanguages	: REQUEST_PROTO.acceptsLanguages
+	upload				: REQUEST_PROTO.upload
 
 # promisify native functions
 # _defineProperties 

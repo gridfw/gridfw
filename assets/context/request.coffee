@@ -1,6 +1,7 @@
 'use strict'
 
 http = require 'http'
+ContentTypeParse = require('content-type').parse
 parseRange = require 'range-parser'
 proxyaddr  = require 'proxy-addr'
 fresh		= require 'fresh'
@@ -8,6 +9,7 @@ fresh		= require 'fresh'
 {gettersOnce} = require '../lib/define-getter-once'
 
 #=include ../commons/_index.coffee
+#=include _upload.coffee
 
 ### response ###
 REQUEST_PROTO=
@@ -45,6 +47,9 @@ REQUEST_PROTO=
 	###
 	header : (name)-> @getHeader name
 	get: (name)-> @getHeader name
+
+	### upload post data ###
+	upload: _uploadPostData
 
 module.exports = REQUEST_PROTO
 
@@ -125,6 +130,14 @@ gettersOnce REQUEST_PROTO,
 	stale: -> !@fresh
 
 	xhr: -> @getHeader('X-Requested-With')?.toLowerCase() is 'xmlhttprequest'
+
+	###*
+	 * data type
+	 * @return {Object} - {type: string, parameters: {param: value}}
+	###
+	contentType: ->
+		ctp = @headers['content-type']
+		ctp and ContentTypeParse ctp
 
 
 ### commons with Context ###

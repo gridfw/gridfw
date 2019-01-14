@@ -34,18 +34,26 @@ class PluginWrapper
 
 	reload: (settings)->
 		@app.debug 'PLUGIN', "Reload plugin: #{@name}"
-		@plugin.reload @app, settings
+		return @plugin.reload @app, settings
 	disable: ->
 		p = @plugin
+		app = @app
 		if 'disable' in p
-			@app.debug 'PLUGIN', "Disable plugin: #{@name}"
-			await p.disable()
-		return
+			app.debug 'PLUGIN', "Disable plugin: #{@name}"
+			return p.disable app
 	enable: ->
 		p = @plugin
+		app = @app
 		if 'enable' in p
-			@app.debug 'PLUGIN', "Enable plugin: #{@name}"
-			await p.enable()
-		return
+			app.debug 'PLUGIN', "Enable plugin: #{@name}"
+			return p.enable app
+	remove: ->
+		p = @plugin
+		app= @app
+		if 'remove' in p
+			app.info 'PLUGIN', "Remove plugin: #{@name}"
+			return p.remove app
+		else
+			return @disable()
 
 module.exports = PluginWrapper

@@ -23,10 +23,6 @@ _defineProperties GridFW.prototype,
 	 * 		.then(handler)
 	 * 		.end # go back to route
 	 * .on('GET', '/path/to/resource')
-	 * 		.use(middleware) # use a middleware
-	 * 		#Add filters
-	 * 		.filter(function(ctx){})
-	 * 		.filter(Filters.isAuthenticated)
 	 * 		# user promise like processing
 	 * 		.then(handler)
 	 * 		.then(handler2)
@@ -34,16 +30,6 @@ _defineProperties GridFW.prototype,
 	 * 		.then(handler3)
 	 * 		.finally(handler)
 	 * 		.then(handler)
-	 * 		# add param handler (we suggest to use global params as possible to avoid complexe code)
-	 * 		.param('paramName', function(ctx){})
-	 ****
-	 * Add Global error handling and post process
-	 * <!> do not confuse with promise like expression
-	 * there is no "then" method
-	 ****
-	 * Route.on('GET', 'path/to/resource')
-	 * 		.catch(err=>{}) # Global error check
-	 * 		.finally(ctx =>{}) # post process
 	 * 		
 	###
 	on: value: (method, route, handler)->

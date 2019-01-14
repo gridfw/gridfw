@@ -1,0 +1,15 @@
+doctype
+html
+	head
+	body
+		p Test send form
+		//- form(method="post" enctype="text/plain")
+		//- form(method="post" enctype="multipart/form-data")
+		form(method="post" enctype="application/x-www-form-urlencoded")
+			label user:
+				input(type="text" name="email")
+			br
+			label pass
+				input(type="password" name="pass")
+			br
+			input(type="submit" value="Send")
