@@ -8,6 +8,15 @@ fresh		= require 'fresh'
 
 {gettersOnce} = require '../lib/define-getter-once'
 
+# upload lib
+Busboy = require 'busboy'
+RawBody= require 'raw-body'
+Zlib = require 'zlib'
+Iconv= require 'iconv-lite'
+NativeFs = require 'fs'
+fs		= require 'mz/fs'
+Path	= require 'path'
+
 #=include ../commons/_index.coffee
 #=include _upload.coffee
 

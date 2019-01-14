@@ -45,6 +45,7 @@
     "on-finished": "^2.3.0",
     "proxy-addr": "^2.0.4",
     "pug": "^2.0.3",
+    "raw-body": "^2.3.3",
     "send": "^0.16.2"
   },
   "devDependencies": {

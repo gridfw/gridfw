@@ -71,7 +71,7 @@ exports.settings=
 	###
 	uploadLimits:
 		value:
-			size: 20 * (2**10) # Max body size (20M)
+			size: 20 * (2**20) # Max body size (20M)
 			fieldNameSize: 1000 # Max field name size (in bytes)
 			fieldSize: 2**20 # Max field value size (default 1M)
 			fields: 1000 # Max number of non-file fields
@@ -85,7 +85,7 @@ exports.settings=
 			for field in ['fieldNameSize', 'fieldSize', 'fields', 'fileSize', 'files', 'parts', 'headerPairs']
 				if field of limits
 					v = limits[field]
-					throw new Error "#{field} expected integer" unless v is Infinity or Number.isInteger v
+					throw new Error "#{field} expected positive integer" unless v is Infinity or Number.isInteger(v) and v > 0
 				else
 					reqFields.push field
 			throw new Error "Required fields: #{reqFields.join ', '}" if reqFields.length
@@ -98,6 +98,13 @@ exports.settings=
 		check: (dir)->
 			throw new Error "Dir path expected string" unless typeof dir is 'string'
 			return
+	###*
+	 * Upload timeout
+	###
+	uploadTimeout:
+		value: 10 * 60 * 1000 # 10min
+		check: (tmout)->
+			throw new Error "Expected positive integer" unless tmout is Infinity or Number.isSafeInteger(tmout) and tmout > 0
 	####<========================== Router =============================>####
 	###*
 	 * Route cache
