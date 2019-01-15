@@ -28,6 +28,17 @@ app.all '/sweet-route', (ctx) ->
 	ctx.info 'Route', 'sweet'
 	ctx.send 'all'
 
+app.get '/login', (ctx) ->
+	ctx.info 'Route', 'get post'
+	ctx.render 'post'
+
+app.post '/login', (ctx) ->
+	ctx.info 'Route', 'post'
+	data = await ctx.upload()
+	console.log '----data----', data
+	ctx.info '-- save user --'
+	ctx.json home: 'User logged'
+
 # run the server
 app.listen 3000
 	.then -> app.log 'Main', "Server listening At: #{app.port}"

@@ -10,14 +10,12 @@ app.post '/', (ctx)->
 	console.log '--->>>>>>>>>>> header: ', ctx.reqHeaders['content-type']
 	# console.log '--- got data: ', ctx.req
 	dt= Date.now()
-	data = await ctx.upload
-		timeout: 2000
-		# onFile: (filename, file, fieldname, encoding, mimetype) ->
-		# 	console.log '---->>>> ', 'file traite'
-		# 	fpath = Path.join __dirname, filename
-		# 	# file.pipe NativeFs.createWriteStream fpath
-
-		# 	return fpath
+	fpath = 
+	data = await ctx.upload()
+		# timeout: 2000
+		# filePath: (fName) ->
+		# 	console.log '---- fname ----', fName
+		# 	Path.join __dirname, 'bb.pdf'
 
 	console.log '---- timeout: ', Date.now() - dt, 'ms'
 	console.log '---- data: ', data

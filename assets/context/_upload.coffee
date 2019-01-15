@@ -23,6 +23,7 @@ _uploadPostData= (options)->
 		bodySize = req.headers['content-length']
 		throw new Error "Content length #{bodySize} exceeds #{limits.size}Bytes" if bodySize and bodySize > limits.size
 		# switch content type
+		console.log '----- contentType--------', contentType
 		switch contentType
 			when 'multipart/form-data', 'application/x-www-form-urlencoded'
 				resultPromise = _uploadPostDataForm this, options
@@ -62,7 +63,6 @@ _uploadPostDataForm = (ctx, options)->
 			reject err
 			return
 		# on finish
-		console.log '--- uploading'
 		busboy.on 'finish', ->
 			clearTimeout uptimeout
 			resolve result
@@ -102,11 +102,11 @@ _uploadPostDataForm = (ctx, options)->
 					# pipe stream
 					file.pipe NativeFs.createWriteStream fPath
 				# create file descriptor
-				result[fieldname] = _create null,
-					path: value: fPath
-					name: value: filename
-					encoding: value: encoding
-					mimetype: value: mimetype
+				result[fieldname] = 
+					path:  fPath
+					name:  filename
+					encoding:  encoding
+					mimetype:  mimetype
 			catch err
 				errorHandle err
 			return
