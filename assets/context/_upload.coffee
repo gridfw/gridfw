@@ -22,8 +22,15 @@ _uploadPostData= (options)->
 		# body size limit
 		bodySize = req.headers['content-length']
 		throw new Error "Content length #{bodySize} exceeds #{limits.size}Bytes" if bodySize and bodySize > limits.size
+		# upload progress
+		if 'progress' of options
+			onProgress = options.progress
+			progressReceived = 0
+			req.on 'data', (data)->
+				len = data.length
+				progressReceived += len
+				onProgress len, progressReceived, bodySize
 		# switch content type
-		console.log '----- contentType--------', contentType
 		switch contentType
 			when 'multipart/form-data', 'application/x-www-form-urlencoded'
 				resultPromise = _uploadPostDataForm this, options
@@ -110,14 +117,6 @@ _uploadPostDataForm = (ctx, options)->
 			catch err
 				errorHandle err
 			return
-			
-			# add to file
-					# _uploadFile fd, filename, file, fieldname, encoding, mimetype
-			# console.log 'File [' + fieldname + ']: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype
-			# file.on 'data', (data)->
-			# 	console.log "-------------( #{fieldname} ) : #{data.length}Bytes"
-			# file.on 'end', ->
-			# 	console.log " file recieved. #{fieldname} "
 		# pipe busboy
 		req.pipe busboy
 		# timeout
@@ -185,7 +184,6 @@ _uploadPostDataRaw = (ctx, options)->
 				else
 					fPath = await _getTmpFileName uploadDir
 				# pipe stream
-				console.log '----- fPath', fPath
 				stream.pipe NativeFs.createWriteStream fPath
 			# create file descriptor
 			result = _create null,
@@ -247,31 +245,6 @@ getBody = (req, maxSize, cb) ->
 				cb null, body
 	catch err
 		cb err
-	
-### save to temp file ###
-# saveFile = (stream, filePath, maxSize, cb) ->
-# 	try
-# 		# file stream
-# 		fileStream = NativeFs.createWriteStream file
-# 		# read stream
-# 		state = stream._readableState
-# 		throw new Error 'stream encoding should not be set' if (stream._decoder || (state && (state.encoding || state.decoder)))
-
-# 		# listeners
-# 		onAborted = -> cb 'aborted'
-# 		cleanup= ->
-# 			stream.removeListener 'aborted', onAborted
-# 			stream.removeListener 'end', cb
-# 			stream.removeListener 'close', cleanup
-# 			return
-# 		# add listeners
-# 		stream.on 'aborted', onAborted
-# 		stream.on 'end', cb
-# 		stream.on 'close', cleanup
-# 		# pipe stream
-# 		stream.pipe fileStream
-# 	catch err
-# 		cb err
 
 # create file tmp name
 TMP_FILE_MAX_LOOP = 1000

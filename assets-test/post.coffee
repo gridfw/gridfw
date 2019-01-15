@@ -11,7 +11,9 @@ app.post '/', (ctx)->
 	# console.log '--- got data: ', ctx.req
 	dt= Date.now()
 	fpath = 
-	data = await ctx.upload()
+	data = await ctx.upload
+		progress: (received, totalReceived, total)->
+			console.log "---->> #{received} :: #{totalReceived} :: #{total}"
 		# timeout: 2000
 		# filePath: (fName) ->
 		# 	console.log '---- fname ----', fName
