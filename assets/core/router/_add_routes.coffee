@@ -94,7 +94,7 @@ _createRouteNode = (app, method, route, handler)->
 			_createRouteNode app, method, v, handler
 		return
 	# check route
-	assetRoute route
+	assertRoute route
 	
 	# settings
 	settings = app.s

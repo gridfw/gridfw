@@ -1,6 +1,6 @@
 # check route wrapper
 # _fixRouteWrapper = (route)->
-# 	assetRoute route
+# 	assertRoute route
 # 	# reject wildcard params
 # 	throw new Error 'Wildcard params are not allowed: ' + route if /\/?\*\w+$/.test route
 # 	# route mast starts width "/"
@@ -129,38 +129,58 @@ _defineProperties GridFW.prototype,
 		# add error handler
 		mapper = _createRouteTree this, route
 		(mapper.E ?= []).push handler
-		(mapper.e ?= []).push handler
 		# propagate middleware to subroutes
 		_AjustRouteHandlers mapper
 		# chain
 		this
 	###*
 	 * wrap request
-	 * #TODO
+	 * @example
+	 * // handler wrapper
+	 * 		wrap(wrapperFx)		# append wrapperFx
+	 * 		wrap(0, wrapperfx)	# preppend wrapperFx
+	 * 		wrap(5, wrapperfx)	# add wrapperFx to this index
+	 * // Controller wrapper
+	 * 		wrap('/', wrapperFx)	# add this wrapper to this route
+	 * 		wrap(0, '/', wrapperFx)	# preppend this wrapper to this route
+	 * 		wrap(5, '/', wrapperFx)	# add this wrapper to this route at this index
 	###
-	wrap: value: (route, handler)->
-		switch arguments.length
-			# route wrapping
-			when 2
-				# check handler
-				throw new Error 'Wrapper expected function' unless typeof handler is 'function'
-				throw new Error "Wrapper[@{route}] format expected: function wrapper(controller){return function(ctx){}}" unless handler.length is 1
-				mapper = _createRouteTree this, route
-				(mapper.W ?= []).push handler
-				(mapper.w ?= []).push handler
-				_AjustRouteHandlers mapper
-				# clear route cache
-				do @_clearRCache
-			# request handling wrapping
-			when 1
-				handler = route
-				throw new Error 'Wrapper expected function' unless typeof handler is 'function'
-				@_handleWrappers.push handler
-				# create new handler
-				_rebuildRequestHandler this
-			# error
-			else
+	wrap: value: (index, route, handler)->
+		# check options
+		# wrap(wrapperFx)
+		if typeof index is 'function'
+			throw new Error 'Illegal handler' unless arguments.length is 1
+			[index, route, handler] = [null, null, index]
+		# wrap('/', wrapperFx)
+		else if typeof index is 'string'
+			throw new Error 'Illegal handler' unless arguments.length is 2
+			[index, route, handler] = [null, index, route]
+		else if Number.isSafeInteger(index) and index >= 0
+			# wrap(0, wrapperfx)
+			if typeof route is 'function'
+				throw new Error 'Illegal handler' unless arguments.length is 2
+				[route, handler] = [null, index]
+			# unless wrap(0, '/', wrapperFx)
+			else unless typeof route is 'string'
 				throw new Error 'Illegal arguments'
+		else
+			throw new Error 'Illegal arguments'
+		throw new Error 'wrapper expected function' unless typeof handler
+		throw new Error "Wrapper format expected: function wrapper(controller){return function(ctx){}}" unless handler.length is 1
+
+		# wrap route
+		if route
+			# check handler
+			mapper = _createRouteTree this, route
+			_wrapAt (mapper.W ?= []), index, handler
+			_AjustRouteHandlers mapper
+			# clear route cache
+			do @_clearRCache
+		# wrap handler
+		else
+			_wrapAt @_handleWrappers, index, handler
+			# create new handler
+			_rebuildRequestHandler this
 		# chain
 		this
 	unwrap: (route, handler)->
@@ -170,7 +190,6 @@ _defineProperties GridFW.prototype,
 				mapper = _createRouteTree this, route, no
 				if mapper
 					_arrayRemove mapper.W, handler if mapper.W
-					_arrayRemove mapper.w, handler if mapper.w
 					_AjustRouteHandlers mapper
 					# clear route cache
 					do @_clearRCache
@@ -195,4 +214,12 @@ _rebuildRequestHandler = (app)->
 	_defineProperty app, 'h',
 		value: handlerFx
 		configurable: on
+	return
+
+### wrap at ###
+_wrapAt = (arr, index, wrapper)->
+	if index is null
+		arr.push wrapper
+	else
+		arr.splice index, 0, wrapper
 	return

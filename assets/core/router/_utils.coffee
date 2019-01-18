@@ -1,10 +1,25 @@
 ### Assert valid route ###
-assetRoute= (route)->
+assertRoute= (route)->
 	throw new Error 'route expected string' unless typeof route is 'string'
 	# prevent "?" symbol and multiple successive slashes
 	throw new Error 'Sequentially slashes detected' if /\/\//.test route
 	throw new Error 'Symbol "?" is only allowed to escape ":" and "*"' if /[^\/]\?|\?[^:*]/.test route
 	return
+
+### adjust controller ###
+_adjustRouteControllers = (mapper)->
+	for method in http.METHODS
+		continue unless mapper[method]
+		# original controller
+		controller = mapper['_' + method]
+		# add parent wrappers
+		
+
+### adjust route handlers ###
+
+
+
+
 
 ###*
  * propagate handlers to subroutes

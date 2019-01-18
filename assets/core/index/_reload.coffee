@@ -140,23 +140,43 @@ _reloadPlugins = (app)->
 	appPlugs= app[PLUGINS]
 	plugSet = new Set Object.keys appPlugs
 	promiseAll = []
-	# add new plugins
-	for k, v of app.s[<%= settings.plugins %>]
-		if plugSet.has k
-			plugSet.remove k
-			unless appPlugs[k].path is v.require
-				app.warn 'PLUGIN',
-					"Plugin [#{k}] require path changed from [#{appPlugs[k].path}] to [#{v.require}]. Old version will be disabled only, restart app in case of problems"
-				promiseAll.push appPlugs[k].remove()
-				appPlugs[k] = new PluginWrapper app, k, v
-		else
-			appPlugs[k]= new PluginWrapper app, k, v
-		promiseAll.push appPlugs[k].reload v
-	# disable removed plugins
+	# Reload / add plugins
+	for k, options of app.s[<%= settings.plugins %>]
+		# plugin contructor
+		pluginConstructor = require options.require || k
+		# reload plugin
+		promiseAll.push _CreateReloadPlugin app, k, pluginConstructor, options
+	# desctroy removed plugins
 	if plugSet.size
-		app.info 'PLUGIN', 'Disable removed plugins (Restart app to Remove theme)'
 		plugSet.forEach (k)->
-			promiseAll.push appPlugs[k].remove()
+			app.info 'PLUGIN', 'Destroy plugin #{plugname}'
+			promiseAll.push appPlugs[k].desctroy()
 	# wait for plugins to be reloaded
 	await Promise.all promiseAll
 	return
+
+_CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
+	# ingore plug case
+	lowerCasePlugName = plugname.toLowerCase()
+	plugs= app[PLUGINS]
+	plugin= plugs[lowerCasePlugName]
+	# already has a plug with this name
+	if plugin
+		if plugin.constructor is pluginConstructor
+			return plugin.reload settings
+		else
+			app.warn 'PLUGIN', "Overrided plugin #{plugname}"
+			app.info 'PLUGIN', 'Destroy plugin #{plugname}'
+			await plugin.destroy()
+	# create new plugin instance
+	plugin= plugs[lowerCasePlugName]= new pluginConstructor app
+	app.warn 'PLUGIN', "Plugin registed with given name [#{plugname}] instead of original one [#{pluginConstructor.name}]" unless pluginConstructor.name.toLowerCase() is lowerCasePlugName
+	# check for required methods
+	req = []
+	for m in ['reload', 'destroy', 'enable', 'disable']
+		console.log '------', m
+		req.push m unless m of plugin
+	console.log '------>> ', plugin.__proto__
+	throw new Error "Required methods [#{req.join ','}] on plugin: #{plugname}" if req.length
+	# reload plugin
+	return plugin.reload settings

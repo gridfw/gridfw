@@ -8,38 +8,29 @@ _defineProperties GridFW.prototype,
 	 * @param  {Plugin} plugin - GridFW plugin
 	 * @example
 	 * app.plugin(require('gridfw-plugin'), @optional settings)
-	 * app.plugin({
-	 * 		name: 'plugin name'
-	 * 		reload: (app, settings)->
-	 * 		disable: (app)->
-	 * 		enable: (app)->
-	 * }, @optional settings)
+	 * app.plugin(pluginConstructor, @optional settings)
+	 * app.plugin('someName', pluginConstructor, @optional settings)
 	###
-	plugin: value: (plugin, settings)->
-		appPlugs = @[PLUGINS]
-		# get plugin
-		if typeof plugin is 'string'
-			throw new Error 'Illegal arguments' if arguments.length isnt 1
-			name = plugin
-			plugin = appPlugs[name]
-			throw new Error "Unknown plugin: #{name}" unless plugin
-			return plugin #return plugin wrapper
-		# set new plugin
-		else if typeof plugin is 'object' and plugin
-			# wrap plugin
-			plugin = new PluginWrapper this, plugin.name, plugin: plugin
-			# override
-			name = plugin.name
-			# disable overrided plug if exists
-			if prevPlug = appPlugs[name]
-				unless prevPlug is plugin
-					@info 'plugin', "Overriding plugin: #{plugin.name}"
-					await prevPlug.disable() if 'disable' in prevPlug
+	plugin: value: (name, pluginConstructor, settings)->
+		# check args
+		switch arguments.length
+			when 2
+				[pluginConstructor, settings] = [name, pluginConstructor]
+			when 3
+				break
+			when 1
+				if typeof name is 'string'
+					plugin = @[PLUGINS][name.toLowerCase()]
+					throw new Error "Unknown plugin: #{name}" unless plugin
+					return plugin
+				else
+					pluginConstructor = name
 			else
-				appPlugs[name] = plugin
-			# init plugin
-			await plugin.reload settings
-			# chain
-			this
-		else
-			throw new Error "Illegal arguments"
+				throw new Error "Illegal arguments"
+		# require plugin
+		unless typeof pluginConstructor is 'function'
+			throw new Error 'Illegal plugin constructor' unless typeof pluginConstructor is 'string'
+			pluginConstructor = require pluginConstructor
+		name ?= pluginConstructor.name
+		# create plugin
+		return _CreateReloadPlugin this, name, pluginConstructor, settings
