@@ -79,17 +79,17 @@ _handleRequest = (req, ctx)->
 		if @w.length
 			nextIndex = 0
 			wrappers = @w
-			next = ->
+			next = =>
 				wrapper = wrappers[nextIndex]
 				if wrapper
 					return wrapper ctx, next
 				else
-					return _handleRequestCore ctx
+					return _handleRequestCore this, ctx
 			# execute request handling
 			await next()
 		else
 			# execute request handling
-			await _handleRequestCore ctx
+			await _handleRequestCore this, ctx
 	catch err
 		ctx.fatalError 'HANDLE-REQUEST', err
 	finally
@@ -98,17 +98,17 @@ _handleRequest = (req, ctx)->
 			ctx.warn 'HANDLE-REQUEST', 'Request leaved open!'
 			await ctx.end()
 ###* wrappable request handler ###
-_handleRequestCore = (ctx)->
+_handleRequestCore = (app, ctx)->
 	try
 		# get route mapper
 		# [_cacheLRU, node, controllerHandler, param1Name, param1Value, ...]
-		routeDescriptor = _resolveRoute this, ctx.method, ctx.path
+		routeDescriptor = _resolveRoute app, ctx.method, ctx.path
 		routeNode = routeDescriptor[1]
 		controllerHandler = routeDescriptor[2]
 		# resolve path params
 		rawPI = ROUTER_PARAM_STATING_INDEX
 		rawPLen = routeDescriptor.length
-		routeParamResolvers = @$
+		routeParamResolvers = app.$
 		if rawPI < rawPLen
 			params = ctx.params
 			while rawPI < rawPLen
@@ -165,7 +165,7 @@ _handleRequestCore = (ctx)->
 				catch e
 					err = e
 		if err
-			await _uncaughtRequestErrorHandler err, ctx, this
+			await _uncaughtRequestErrorHandler err, ctx, app
 			.catch (err)=> ctx.fatalError 'HANDLE-REQUEST', err
 	return
 ###*

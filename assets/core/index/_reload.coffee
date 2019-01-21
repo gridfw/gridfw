@@ -174,9 +174,7 @@ _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
 	# check for required methods
 	req = []
 	for m in ['reload', 'destroy', 'enable', 'disable']
-		console.log '------', m
 		req.push m unless m of plugin
-	console.log '------>> ', plugin.__proto__
 	throw new Error "Required methods [#{req.join ','}] on plugin: #{plugname}" if req.length
 	# reload plugin
 	return plugin.reload settings

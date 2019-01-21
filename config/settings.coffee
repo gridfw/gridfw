@@ -94,7 +94,7 @@ exports.settings=
 	 * Upload default directory
 	###
 	uploadDir:
-		default: (app, mode)-> require('os').tmpDir()
+		default: (app, mode)-> require('os').tmpdir()
 		check: (dir)->
 			throw new Error "Dir path expected string" unless typeof dir is 'string'
 			return

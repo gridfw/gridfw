@@ -36,7 +36,7 @@
     "create-symlink": "^1.0.0",
     "encodeurl": "^1.0.2",
     "fast-decode-uri-component": "^1.0.0",
-    "gridfw-cookie": "^1.0.1",
+    "gridfw-cookie": "^1.0.2",
     "gridfw-logger": "0.0.5",
     "lru-cache": "^4.1.3",
     "mime-types": "^2.1.20",

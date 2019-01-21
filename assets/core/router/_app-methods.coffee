@@ -47,7 +47,7 @@ _defineProperties GridFW.prototype,
 		if typeof index is 'string'
 			throw new Error 'Illegal arguments' if arguments.length isnt 2
 			[index, route, handler] = [null, index, route]
-		else if if Number.isSafeInteger(index) and index >= 0
+		else if Number.isSafeInteger(index) and index >= 0
 			throw new Error 'Illegal arguments' if arguments.length isnt 3
 		else
 			throw new Error 'Illegal arguments'
