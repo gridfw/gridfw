@@ -104,7 +104,7 @@ class GridFW
 			port: UNDEFINED
 			path: UNDEFINED
 			# handle request wraping
-			_handleWrappers: value: []
+			w: value: []
 			# settings
 			s: value: Array CONFIG.config.length
 			# locals
@@ -127,10 +127,6 @@ class GridFW
 			[CACHED_ROUTES]:
 				value: _create null
 				writable: true
-			# request handler
-			h:
-				value: _handleRequestCore
-				configurable: on
 			# plugins
 			[PLUGINS]: value: _create null
 		# create context

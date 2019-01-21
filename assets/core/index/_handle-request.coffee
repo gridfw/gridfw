@@ -75,8 +75,21 @@ _handleRequest = (req, ctx)->
 			res: value: ctx
 			ctx: value: ctx
 			req: value: req
-		# execute request handling
-		await @h ctx
+		# execute handler wrappers
+		if @w.length
+			nextIndex = 0
+			wrappers = @w
+			next = ->
+				wrapper = wrappers[nextIndex]
+				if wrapper
+					return wrapper ctx, next
+				else
+					return _handleRequestCore ctx
+			# execute request handling
+			await next()
+		else
+			# execute request handling
+			await _handleRequestCore ctx
 	catch err
 		ctx.fatalError 'HANDLE-REQUEST', err
 	finally
@@ -88,7 +101,7 @@ _handleRequest = (req, ctx)->
 _handleRequestCore = (ctx)->
 	try
 		# get route mapper
-		# [_cacheLRU, node, param1Name, param1Value, ...]
+		# [_cacheLRU, node, controllerHandler, param1Name, param1Value, ...]
 		routeDescriptor = _resolveRoute this, ctx.method, ctx.path
 		routeNode = routeDescriptor[1]
 		controllerHandler = routeDescriptor[2]
@@ -118,8 +131,21 @@ _handleRequestCore = (ctx)->
 						paramValue[k] = await ref2[1] v, <%= app.QUERY_PARAM %>, ctx
 				else
 					queryParams[paramName] = await ref2[1] paramValue, <%= app.QUERY_PARAM %>, ctx
+		# exec wrappers
+		wrappers = routeNode.w
+		if wrappers and wrappers.length
+			nextIndex = 0
+			next = ->
+				wrapper = wrappers[nextIndex]
+				if wrapper
+					return wrapper ctx, next
+				else
+					return controllerHandler ctx
+			# execute request handling
+			v = await next()
+		else
+			v = await controllerHandler ctx
 		# execute Controller
-		v = await controllerHandler ctx
 		unless ctx.finished
 			if v in [undefined, ctx]
 				# if a view is set
@@ -149,7 +175,6 @@ _defineProperties GridFW.prototype,
 	###*
 	 * Handle incomming request
 	###
-	h: value: _handleRequestCore
 	handle: value: _handleRequest
 	###*
 	 * get route Mapper and resolve params

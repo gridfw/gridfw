@@ -129,7 +129,7 @@ _createRouteNode = (app, method, route, handler)->
 		throw new Error 'Controller mast be function' unless typeof handler is 'function'
 		app.warn 'RTER', "Route controller overrided: #{method} #{originalRoute}" if mapper[method]
 		mapper[method] = handler
-		mapper['_' + method] = handler
+		# mapper['_' + method] = handler
 
 	# optional operations
 	# if descrp
@@ -144,7 +144,7 @@ _createRouteNode = (app, method, route, handler)->
 	# 		mapper['_' + method] = mapper[method] = handler
 
 	# fix route, add wrappers, and other handlers
-	_AjustRouteHandlers mapper, false
+	# _AjustRouteHandlers mapper, false
 
 	# add static shortcut
 	unless isDynamic

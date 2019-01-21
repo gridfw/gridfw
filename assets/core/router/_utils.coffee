@@ -6,106 +6,40 @@ assertRoute= (route)->
 	throw new Error 'Symbol "?" is only allowed to escape ":" and "*"' if /[^\/]\?|\?[^:*]/.test route
 	return
 
-### adjust controller ###
-_adjustRouteControllers = (mapper)->
-	for method in http.METHODS
-		continue unless mapper[method]
-		# original controller
-		controller = mapper['_' + method]
-		# add parent wrappers
-		
-
-### adjust route handlers ###
-
-
-
-
-
 ###*
- * propagate handlers to subroutes
- * - Middlewares
- * - Error handlers
- * - Wrappers
+ * Rebuild route and subroutes
+ * Rebuid wrappers
+ * Rebuid error handlers
 ###
-# _AjustRouteHandlersSequences = ['M', 'E']
-_AjustRouteHandlersSequences = ['E']
-_AjustRouteHandlers = (routeMapper, goSubRoutes)->
-	# adjust subroutes
-	if goSubRoutes isnt false
-		# middlewares and error handlers
-		for key in _AjustRouteHandlersSequences
-			if routeMapper[key]
-				k = key.toLowerCase()
-				_routeTreeSeek routeMapper, (parentNode, mapper)->
-					# clone parent middlewares
-					m = parentNode[k].slice 0
-					# add child middlewares
-					m.push ml for ml in mapper[key] if mapper[key]
-					# set as middleware list
-					mapper[k] = m
-					return
-	# wrappers
-	if routeMapper.W
-		_routeTreeSeek routeMapper, (parentNode, mapper)->
-			# clone parent middlewares
-			m = parentNode.w.slice 0
-			# push child wrappers (LIFO)
-			ref = mapper.W
-			if ref
-				i = ref.length
-				while i > 0
-					--i
-					m.push ref[i]
-			# set as wrappers list
-			mapper.w = m
-			return
-	# change controller
-	_adjustRouteMapper routeMapper
-	unless goSubRoutes is false
-		_routeTreeSeek routeMapper, (parentNode, mapper)->
-			_adjustRouteMapper mapper
-	return
-_adjustRouteMapper = (mapper)->
-	# adjust all supported HTTP methods
-	for method in HTTP_SUPPORTED_METHODS
-		continue unless mapper[method]
-		# get original controller
-		controller = mapper['_' + method]
-		# add wrappers
-		if mapper.w
-			ref = mapper.w
-			i = ref.length - 1
-			while i >= 0
-				controller = ref[i] controller
-				throw new Error "Illegal wrapper response! wrapper: #{ref[i]}" unless typeof controller is 'function' and controller.length is 1
-				--i
-		# replace with new controller
-		mapper[method] = controller
-		# if is static route
-		ref = mapper['~' + method]
-		if ref
-			ref[2] = controller
-		return
-
-_routeTreeSeek = (mapper, cb)->
-	next = [mapper, null]
-	i = 0
+_AdjustRouteMappers = (mapper)->
+	next= [mapper]
+	nextIdx = 0
 	loop
-		# get mapper
-		mapper		= next[i]
-		parentNode	= next[++i]
-		++i
-		# cb for this mapper, when returns false, do not continue
-		# with this branche
-		if parentNode
-			doContinue = cb parentNode, mapper
-		else
-			doContinue = true
-		# go through this mapper subnodes
-		unless doContinue is false
-			for k in Reflect.ownKeys mapper
-				if typeof k is 'string' and k.startsWith '/'
-					next.push mapper[k], mapper
+		mapper = next[nextIdx++]
+		# concat errors
+		mapper.e = _AdjustRouteMappersConcat mapper.ee, mapper.E
+		# concat wrappers
+		mapper.w = _AdjustRouteMappersConcat mapper.ww, mapper.W
+		# sub wrappers
+		for k in Reflect.ownKeys mapper
+			if typeof k is 'string' and k.startsWith '/'
+				childMapper = mapper[k]
+				# inheritance
+				childMapper.ee = childMapper.e
+				childMapper.ww = childMapper.w
+				# next
+				next.push childMapper
 		# break
-		break if i >= next.length
-	return
+		if nextIdx >= next.length
+			break
+
+_AdjustRouteMappersConcat = (arr1, arr2)->
+	if arr1
+		if arr2
+			return arr1.concat arr2
+		else
+			return arr1.slice 0
+	else if arr2
+		return arr2.slice 0
+	else
+		return []

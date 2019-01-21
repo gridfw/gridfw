@@ -28,13 +28,14 @@ Route tree format:
 		│	└─['param1Name', 'param2Name', ...]
 		│
 		│
-		├─  e: errHandler	# Error handler inherit from parent routes
 		├─  E: errHandler	# Error handler owned by this root
+		├─  ee: errHandler	# Error handler inherit from parent routes
+		├─  e: errHandler	# concat
 		│
-		├─  w: []	# wrappers inherit from parent routes
 		├─  W: [] # route owned wrappers
+		├─  ww: [] # wrappers inherit from parent routes
+		├─  w: [] # combine of all wrappers
 		│
 		├─ GET: handler
-		├─ _GET: original_handler # original handler, without wrapping
 		├─ ~GET: [] # link to static route when static
 		└─ 
