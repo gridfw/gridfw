@@ -3,6 +3,11 @@ _handleRequest = (req, ctx)->
 	try
 		# settings
 		settings = @s
+		# request timeout
+		# if  i = settings[<%= settings.reqtimeout %>]
+		# 	req.setTimeout i
+		# 	req.connection.on 'timeout', ->
+		# 		ctx.fatalError 'HANDLE-REQUEST', 'Request timeout'
 		# path
 		url = req.url
 		i = url.indexOf '?'
@@ -80,7 +85,7 @@ _handleRequest = (req, ctx)->
 			nextIndex = 0
 			wrappers = @w
 			next = =>
-				wrapper = wrappers[nextIndex]
+				wrapper = wrappers[nextIndex++]
 				if wrapper
 					return wrapper ctx, next
 				else
@@ -136,7 +141,7 @@ _handleRequestCore = (app, ctx)->
 		if wrappers and wrappers.length
 			nextIndex = 0
 			next = ->
-				wrapper = wrappers[nextIndex]
+				wrapper = wrappers[nextIndex++]
 				if wrapper
 					return wrapper ctx, next
 				else

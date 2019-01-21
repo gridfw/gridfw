@@ -25,8 +25,8 @@ _AdjustRouteMappers = (mapper)->
 			if typeof k is 'string' and k.startsWith '/'
 				childMapper = mapper[k]
 				# inheritance
-				childMapper.ee = childMapper.e
-				childMapper.ww = childMapper.w
+				childMapper.ee = mapper.e
+				childMapper.ww = mapper.w
 				# next
 				next.push childMapper
 		# break

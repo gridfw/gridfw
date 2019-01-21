@@ -136,6 +136,13 @@ exports.settings=
 
 	####<========================== Request =============================>####
 	###*
+	 * Timeout
+	 * 0 = infinity
+	###
+	# reqtimeout:
+	# 	value: 20000
+	# 	check: (tmout)-> throw new Error 'Expected number' unless Number.isSafeInteger(tmout) and tmout >= 0
+	###*
 	 * trust proxy
 	###
 	trustProxyFunction:
