@@ -101,14 +101,20 @@ _reloadSettings = (app, options)->
 		try
 			options = require options
 		catch err
-			app.warn 'CORE', "Could not find config file at: #{options}.[js or json]"
-			options = null
+			if err.message.indexOf('gridfw-config') isnt -1
+				app.warn 'CORE', "Configuration file missing at: #{options}"
+				options = null
+			else
+				throw new GError 500, 'Config file contains errors', err
 	else if typeof options is 'string'
 		try
 			options = require options
 		catch err
-			app.error 'CORE', "Could not find config file at: #{options}"
-			throw err
+			if err.message.indexOf('gridfw-config') isnt -1
+				app.error 'CORE', "Configuration file missing at: #{options}"
+				throw new GError 500, 'Mising config file', err
+			else
+				throw new GError 500, 'Config file contains errors', err
 	# load default settings
 	appSettings = app.s
 	for v, k in CONFIG.config
