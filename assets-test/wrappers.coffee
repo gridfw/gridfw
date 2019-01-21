@@ -25,15 +25,13 @@ app.listen 3000
 # handler wrappers
 app.wrap (ctx, next)->
 	console.log '---- handler wrapper at: ', ctx.path
-	a = await next()
+	await next()
 	console.log '---- ends call'
-	return a
 
 app.wrap (ctx, next)->
 	console.log '--- wrapper 2'
-	v = await next()
+	await next()
 	console.log '--- ends wrapper 2'
-	return v
 
 # route wrapper
 app.wrap '/', (ctx, next)->
@@ -46,3 +44,5 @@ app.wrap '/test', (ctx, next)->
 	v = await next()
 	console.log '===========> end /test wrap'
 	return v
+
+console.log '------ ', app.mode
