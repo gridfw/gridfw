@@ -136,7 +136,7 @@ _reloadSettings = (app, options)->
 			appSettings[configKies[k]] = v app, mode
 	# plugins settings
 	if options?.plugins
-		Object.setPrototypeOf options.plugins, CONFIG.kies[<%= settings.plugins %>]
+		Object.setPrototypeOf options.plugins, CONFIG.config[<%= settings.plugins %>]
 	return
 
 ###*
