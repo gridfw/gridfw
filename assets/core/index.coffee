@@ -42,6 +42,7 @@ VIEW_CACHE = Symbol 'View cache'
 STATIC_ROUTES	= Symbol 'Static routes'
 # DYNAMIC_ROUTES	= Symbol 'Dynamic routes'
 PLUGINS			= Symbol 'Plugins'
+PLUGIN_STARTING	= Symbol 'Plugin starting'
 
 # caching routes
 CACHED_ROUTES		= Symbol 'Cached_routes'
@@ -103,6 +104,8 @@ class GridFW
 			host: UNDEFINED
 			port: UNDEFINED
 			path: UNDEFINED
+			ip: UNDEFINED
+			ipType: UNDEFINED
 			# handle request wraping
 			w: value: []
 			# settings
@@ -129,6 +132,7 @@ class GridFW
 				writable: true
 			# plugins
 			[PLUGINS]: value: _create null
+			[PLUGIN_STARTING]: value: new Set() # debug purpose, save all starting plugins
 		# create context
 		_createContext this
 		# process off listener
@@ -158,6 +162,10 @@ _defineProperties GridFW.prototype,
 	listening: get: -> @server?.listening || false
 	# framework version
 	version: value: PKG.version
+	# app data
+	name: get: -> @s[<%= settings.name %>]
+	mode: get: -> @s[<%= settings.mode %>]
+	email: get: -> @s[<%= settings.email %>]
 
 # consts
 _defineProperties GridFW,

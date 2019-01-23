@@ -90,24 +90,26 @@ _defineProperties GridFW.prototype,
 		# check options
 		# wrap(wrapperFx)
 		if typeof index is 'function'
-			throw new Error 'Illegal handler' unless arguments.length is 1
 			[index, route, handler] = [null, null, index]
+			assertArgsCount = 1
 		# wrap('/', wrapperFx)
 		else if typeof index is 'string'
-			throw new Error 'Illegal handler' unless arguments.length is 2
-			[index, route, handler] = [null, index, route]
+			[index, route, handler]= [null, index, route]
+			assertArgsCount= 2
 		else if Number.isSafeInteger(index) and index >= 0
 			# wrap(0, wrapperfx)
 			if typeof route is 'function'
-				throw new Error 'Illegal handler' unless arguments.length is 2
-				[route, handler] = [null, index]
+				[route, handler]= [null, route]
+				assertArgsCount= 2
 			# unless wrap(0, '/', wrapperFx)
 			else unless typeof route is 'string'
+				assertArgsCount= 3
 				throw new Error 'Illegal arguments'
 		else
 			throw new Error 'Illegal arguments'
 		throw new Error 'wrapper expected function' unless typeof handler
 		throw new Error "Wrapper format expected: function wrapper(ctx, next){}" unless handler.length is 2
+		throw new Error 'Illegal arguments count' unless arguments.length is assertArgsCount
 
 		# wrap route
 		if route

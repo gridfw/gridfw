@@ -158,10 +158,10 @@ _reloadPlugins = (app)->
 			app.info 'PLUGIN', 'Destroy plugin #{plugname}'
 			promiseAll.push appPlugs[k].desctroy()
 	# wait for plugins to be reloaded
-	await Promise.all promiseAll
-	return
+	return Promise.all promiseAll
 
 _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
+	app[PLUGIN_STARTING].add plugname # debug purpose
 	# ingore plug case
 	lowerCasePlugName = plugname.toLowerCase()
 	plugs= app[PLUGINS]
@@ -171,9 +171,10 @@ _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
 		if plugin.constructor is pluginConstructor
 			return plugin.reload settings
 		else
-			app.warn 'PLUGIN', "Overrided plugin #{plugname}"
-			app.info 'PLUGIN', 'Destroy plugin #{plugname}'
+			app.warn 'PLUGIN', "Overrided plugin: #{plugname}"
 			await plugin.destroy()
+	else
+		app.debug 'PLUGIN', "Starting plugin: #{plugname}"
 	# create new plugin instance
 	plugin= plugs[lowerCasePlugName]= new pluginConstructor app
 	app.warn 'PLUGIN', "Plugin registed with given name [#{plugname}] instead of original one [#{pluginConstructor.name}]" unless pluginConstructor.name.toLowerCase() is lowerCasePlugName
@@ -183,4 +184,8 @@ _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
 		req.push m unless m of plugin
 	throw new Error "Required methods [#{req.join ','}] on plugin: #{plugname}" if req.length
 	# reload plugin
-	return plugin.reload settings
+	await plugin.reload settings
+	# debug
+	app[PLUGIN_STARTING].delete plugname
+	app.info 'PLUGIN', "Plugin Started: #{plugname}"
+	return 

@@ -18,7 +18,7 @@ exports.settings=
 			throw new Error "Illegal mode #{mode}. Expected 'dev' or 'prod'" unless value in ['dev', 'prod']
 	### name ###
 	name:
-		value: 'GridFW'
+		value: 'Gridfw-app'
 		check: (value)->
 			throw new Error 'Name expected string' unless typeof value is 'string'
 	###* Author ###

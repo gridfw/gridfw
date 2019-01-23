@@ -42,7 +42,16 @@ _defineProperties GridFW.prototype,
 ###
 _exitingProcessQeu= [] # when there is multiple servers on this process
 _exitingProcess = (app, code)->
-	app.info 'CORE', "Existing process [#{app.name}]: #{code}"
+	if code
+		app.warn 'CORE', "Existing app [#{app.name}] with code: #{code}"
+	else if app.loaded
+		app.info 'CORE', "Existing app [#{app.name}]"
+	else if app[PLUGIN_STARTING].size
+		app[PLUGIN_STARTING].forEach (plugName)->
+			app.error 'CORE', "Plugin load fails: #{plugName}"
+		app.fatalError 'CORE', 'Start fails'
+	else
+		app.fatalError 'CORE', 'Start fail. Did you forget to start server listening?'
 	_exitingProcessQeu.push app, code
 	if _exitingProcessQeu.length is 2
 		_doExit()
@@ -75,7 +84,7 @@ _doExit = ->
 	# waiting for async operations
 	await Promise.all asyncOperations
 	# stop process if no other operation is in process
-	app.info 'CORE', '--- Process exit'
+	console.log "\n\x1b[36m└──────────────────────────────────── Process Exited ─────────────────────────────────────┘\x1b[0m\n"
 	process.exit()
 	# process.abort()
 	return

@@ -31,8 +31,19 @@ GridFW::listen= (options)->
 	protocol = protocol.toLowerCase()
 	servFacto = SERVER_LISTENING_PROTOCOLS[protocol]
 	throw new Error "Unsupported protocol: #{options.protocol}" unless servFacto
-	# create server
+	# override server
+	if @server
+		@info 'CORE', 'Overriding underlying server'
+		@server.close (err)=>
+			if err
+				@error 'CORE', err
+			else
+				@info 'CORE', 'Overrided server closed.'
+	# create new server
 	server = servFacto options, this
+	# save infos
+	@server= server
+	@port= @ip= @ipType= @protocol= @host= @path= undefined
 	# listen options
 	listenOptions = if typeof options.port is 'number' then options.port else {}
 	# run listener
