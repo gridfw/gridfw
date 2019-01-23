@@ -70,31 +70,13 @@ _handleRequest = (req, ctx)->
 			# params
 			params: value: _create null
 			query: value: queryParams
-			# post body
-			body:
-				value: undefined
-				writable: on
-				configurable: on
 		# add to request
 		_defineProperties req,
 			res: value: ctx
 			ctx: value: ctx
 			req: value: req
-		# execute handler wrappers
-		if @w.length
-			nextIndex = 0
-			wrappers = @w
-			next = =>
-				wrapper = wrappers[nextIndex++]
-				if wrapper
-					return wrapper ctx, next
-				else
-					return _handleRequestCore this, ctx
-			# execute request handling
-			await next()
-		else
-			# execute request handling
-			await _handleRequestCore this, ctx
+		# go to Step 2
+		await _handleRequest2 app, ctx
 	catch err
 		ctx.fatalError 'HANDLE-REQUEST', err
 	finally
@@ -102,6 +84,22 @@ _handleRequest = (req, ctx)->
 		unless ctx.finished
 			ctx.warn 'HANDLE-REQUEST', 'Request leaved open!'
 			await ctx.end()
+###* handle request: step 2 - common with mount app ###
+_handleRequest2 = (app, ctx)->
+	# execute handler wrappers
+	if (wrappers = app.w) and wrappers.length
+		nextIndex = 0
+		next = =>
+			wrapper = wrappers[nextIndex++]
+			if wrapper
+				return wrapper ctx, next
+			else
+				return _handleRequestCore app, ctx
+		# execute request handling
+		return next()
+	else
+		# execute request handling
+		return _handleRequestCore app, ctx
 ###* wrappable request handler ###
 _handleRequestCore = (app, ctx)->
 	try

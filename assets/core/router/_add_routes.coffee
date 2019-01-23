@@ -66,6 +66,8 @@ _defineProperties GridFW.prototype,
 		throw new Error 'method expected string' unless typeof method is 'string'
 		method = method.toUpperCase()
 		throw new Error "Unknown http method [#{method}]" unless method in HTTP_METHODS
+
+		throw new Error 'Unimplemented'
 		# exec
 		# switch arguments.length
 		# 	# off(method, route)
@@ -126,7 +128,12 @@ _createRouteNode = (app, method, route, handler)->
 	mapper = _createRouteTree app, route
 	# add controller
 	if handler
-		throw new Error 'Controller mast be function' unless typeof handler is 'function'
+		# simple handler
+		# mounted app
+		unless typeof handler is 'function'
+			throw new Error 'Controller mast be function or Gridfw app' unless handler instanceof GridFW
+			handler = _mount app, handler, method, route
+		# map
 		app.warn 'RTER', "Route controller overrided: #{method} #{originalRoute}" if mapper[method]
 		mapper[method] = handler
 		# mapper['_' + method] = handler

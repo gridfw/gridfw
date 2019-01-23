@@ -13,7 +13,7 @@ exports.settings=
 	####<========================== App Id =============================>####
 	mode:
 		value: 'dev'
-		default: (value)-> ['dev', 'prod'].indexOf value
+		default: (app, value)-> ['dev', 'prod'].indexOf value
 		check: (value)->
 			throw new Error "Illegal mode #{mode}. Expected 'dev' or 'prod'" unless value in ['dev', 'prod']
 	### name ###
@@ -45,12 +45,6 @@ exports.settings=
 		value: '/'
 		check: (value)->
 			throw new Error 'path expected string' unless typeof value is 'string'
-	# enable dev tools
-	devTools:
-		value: on
-		default: (app, mode)-> mode is 'dev'
-		check: (value)->
-			throw new Error 'Value expected boolean' unless typeof value is 'boolean'
 	####<========================== LOG =============================>####
 	###*
 	 * log level
@@ -230,6 +224,10 @@ exports.settings=
 					throw new Error "Error templates: errorTemplates.#{k} mast be file path"
 			return
 	# plugins
+	devPlugins:
+		value: {}
+		check: (value)->
+			throw new Error 'Expected map of plugins' unless typeof value is 'object' and value 
 	plugins:
 		value:
 			'cookie':
@@ -245,5 +243,5 @@ exports.settings=
 		# 		level: if isDev then 'debug' : 'info'
 		# 		target: 'console'
 		check: (value)->
-			throw new Error 'plugins option expected map of plugins' unless typeof value is 'object' and value 
+			throw new Error 'Expected map of plugins' unless typeof value is 'object' and value 
 

@@ -101,6 +101,7 @@ _reloadSettings = (app, options)->
 		try
 			options = require options
 		catch err
+			console.log '----err---', err.message
 			if err.message.indexOf('gridfw-config') isnt -1
 				app.warn 'CORE', "Configuration file missing at: #{options}"
 				options = null
@@ -147,18 +148,28 @@ _reloadPlugins = (app)->
 	plugSet = new Set Object.keys appPlugs
 	promiseAll = []
 	# Reload / add plugins
-	for k, options of app.s[<%= settings.plugins %>]
-		# plugin contructor
-		pluginConstructor = require options.require || k
-		# reload plugin
-		promiseAll.push _CreateReloadPlugin app, k, pluginConstructor, options
+	_reloadPlugs app, app.s[<%= settings.plugins %>], promiseAll
+	# dev plugs
+	if app.isDevMode
+		_reloadPlugs app, app.s[<%= settings.devPlugins %>], promiseAll
 	# desctroy removed plugins
 	if plugSet.size
 		plugSet.forEach (k)->
-			app.info 'PLUGIN', 'Destroy plugin #{plugname}'
+			app.info 'PLGIN', 'Destroy plugin #{plugname}'
 			promiseAll.push appPlugs[k].desctroy()
 	# wait for plugins to be reloaded
 	return Promise.all promiseAll
+
+_reloadPlugs = (app, pluginsMap, promiseAll)->
+	if pluginsMap
+		for k, options of pluginsMap
+			# plugin contructor
+			pluginConstructor = require options.require || k
+			throw new Error "Unsupported plugin: #{options.require || k}" unless typeof pluginConstructor is 'function'
+			# reload plugin
+			promiseAll.push _CreateReloadPlugin app, k, pluginConstructor, options
+	return
+
 
 _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
 	app[PLUGIN_STARTING].add plugname # debug purpose
@@ -171,13 +182,13 @@ _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
 		if plugin.constructor is pluginConstructor
 			return plugin.reload settings
 		else
-			app.warn 'PLUGIN', "Overrided plugin: #{plugname}"
+			app.warn 'PLGIN', "Overrided plugin: #{plugname}"
 			await plugin.destroy()
 	else
-		app.debug 'PLUGIN', "Starting plugin: #{plugname}"
+		app.debug 'PLGIN', "Starting plugin: #{plugname}"
 	# create new plugin instance
 	plugin= plugs[lowerCasePlugName]= new pluginConstructor app
-	app.warn 'PLUGIN', "Plugin registed with given name [#{plugname}] instead of original one [#{pluginConstructor.name}]" unless pluginConstructor.name.toLowerCase() is lowerCasePlugName
+	app.warn 'PLGIN', "Plugin registed with given name [#{plugname}] instead of original one [#{pluginConstructor.name}]" unless pluginConstructor.name.toLowerCase() is lowerCasePlugName
 	# check for required methods
 	req = []
 	for m in ['reload', 'destroy', 'enable', 'disable']
@@ -187,5 +198,5 @@ _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
 	await plugin.reload settings
 	# debug
 	app[PLUGIN_STARTING].delete plugname
-	app.info 'PLUGIN', "Plugin Started: #{plugname}"
+	app.info 'PLGIN', "Plugin Started: #{plugname}"
 	return 

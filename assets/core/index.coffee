@@ -133,6 +133,9 @@ class GridFW
 			# plugins
 			[PLUGINS]: value: _create null
 			[PLUGIN_STARTING]: value: new Set() # debug purpose, save all starting plugins
+			# mounted apps
+			mounted: UNDEFINED # list of all mounted apps
+			mountedTo: UNDEFINED # list of all parent apps
 		# create context
 		_createContext this
 		# process off listener
@@ -145,9 +148,6 @@ class GridFW
 		.then =>
 			# start cache cleaner
 			_routeCacheStart this
-			# add dev utilities
-			if @s[<%= settings.devTools %>]
-				require('../dev')(this)
 
 		.catch (err) =>
 			@fatalError 'CORE', err
@@ -166,6 +166,9 @@ _defineProperties GridFW.prototype,
 	name: get: -> @s[<%= settings.name %>]
 	mode: get: -> @s[<%= settings.mode %>]
 	email: get: -> @s[<%= settings.email %>]
+	# mode
+	isDevMode: get: -> @s[<%= settings.mode %>] is <%= app.DEV %>
+	isProdMode: get: -> @s[<%= settings.mode %>] is <%= app.PROD %>
 
 # consts
 _defineProperties GridFW,
@@ -177,7 +180,6 @@ _defineProperties GridFW,
 	QUERY_PARAM: value: <%= app.QUERY_PARAM %>
 	# framework version
 	version: value: PKG.version
-
 # Logger
 _defineProperties GridFW.prototype,
 	logLevel:
@@ -205,6 +207,7 @@ loggerFactory CONTEXT_PROTO, level: 'debug'
 #=include index/_reload.coffee
 #=include index/_route-cache-manager.coffee
 #=include index/_static-files.coffee
+#=include index/_mount.coffee
 
 # exports
 module.exports = GridFW
