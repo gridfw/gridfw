@@ -28,16 +28,10 @@ _uncaughtRequestErrorHandler = (err, ctx, app)->
 			statusCd = 500 unless typeof statusCd is 'number' and 400 <= statusCd < 600 and Number.isSafeInteger statusCd
 	# render error
 	unless ctx.finished
-		# keys
-		if app.mode is <%= app.DEV %>
-			errorKey  =  'd' + errorKey
-			defErrKey = 'd500'
-		else
-			defErrKey = '500'
 		# status
 		ctx.statusCode = statusCd
 		ctx.contentType= 'html'
 		# rener template
 		errorTemplates = settings[<%= settings.errorTemplates %>]
-		await ctx.render errorTemplates[errorKey] || errorTemplates[defErrKey], error: err
+		await ctx.render errorTemplates[errorKey] || errorTemplates['500'], error: err
 	return

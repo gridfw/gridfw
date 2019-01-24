@@ -39,7 +39,7 @@ _defineProperty GridFW.prototype, '_mountHandler',
 	get: ->
 		mountHandler = _mountHandler.bind this
 		_defineProperty this, '_mountHandler', value: mountHandler
-		return _mountHandler
+		return mountHandler
 
 # mount handler
 _mountHandler = (ctx)->
@@ -51,13 +51,23 @@ _mountHandler = (ctx)->
 		unless settings[<%= settings.trailingSlash %>]
 			rawPath = rawPath.slice 0, -1 if rawPath.endsWith '/'
 	# wrap context
-	ctx = _create ctx,
+	ctx2 = _create ctx,
+		app: value: this
+		s: value: settings
 		path:
 			value: rawPath
 			writable: on
 			configurable: on
+		_end: value: (data, cb)-> ctx._end data, cb
+		_write: value: (chunk, encoding, cb)-> ctx._write chunk, encoding, cb
+	# locals
+	locals = _create @locals,
+		ctx: value: ctx2
+	_defineProperties ctx2,
+		locals: value: locals
+		data: value: locals
 	# call context handling
-	return _handleRequest2 this, ctx
+	return _handleRequest2 this, ctx2
 			
 
 	

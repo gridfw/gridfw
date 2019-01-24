@@ -82,7 +82,9 @@ class GridFW
 	###
 	constructor: (options)->
 		# print logo
-		_console_logo this
+		unless GridFW.running
+			GridFW.running = yes
+			_console_logo this
 		# locals
 		locals = _create null,
 			app: value: this

@@ -33,26 +33,30 @@ _defineProperties GridFW.prototype,
 	 * 		
 	###
 	on: value: (method, route, handler)->
-		# clear route cache
-		do @_clearRCache
-		# Add handlers
-		switch arguments.length
-			# .on 'GET', '/route', handler
-			when 3
-				if typeof handler is 'function'
-					throw new Error 'handler could take only one argument' if handler.length > 1
-					_createRouteNode this, method, route, handler
+		try
+			# clear route cache
+			do @_clearRCache
+			# Add handlers
+			switch arguments.length
+				# .on 'GET', '/route', handler
+				when 3
+					if (typeof handler is 'function') or (handler instanceof GridFW)
+						# throw new Error 'handler could take only one argument' if handler.length > 1
+						_createRouteNode this, method, route, handler
+					else
+						throw new Error 'Illegal handler'
+					# chain
+					return this
+				# .on 'GET', '/route'
+				# create new node only if controller is specified, add handler to other routes otherwise
+				when 2
+					# do builder
+					return new _RouteBuiler this, (handler)=> _createRouteNode this, method, route, handler
 				else
-					throw new Error 'Illegal handler'
-				# chain
-				return this
-			# .on 'GET', '/route'
-			# create new node only if controller is specified, add handler to other routes otherwise
-			when 2
-				# do builder
-				return new _RouteBuiler this, (handler)=> _createRouteNode this, method, route, handler
-			else
-				throw new Error '[app.on] Illegal arguments ' + JSON.stringify arguments
+					throw new Error '[app.on] Illegal arguments ' + JSON.stringify arguments
+		catch err
+			throw new GError 500, "Route creation fails: #{method} #{route}", err
+		
 	###*
 	 * Remove route
 	 * @example
@@ -132,7 +136,7 @@ _createRouteNode = (app, method, route, handler)->
 		# mounted app
 		unless typeof handler is 'function'
 			throw new Error 'Controller mast be function or Gridfw app' unless handler instanceof GridFW
-			handler = _mount app, handler, method, route
+			handler = _mount app, handler, method, originalRoute
 		# map
 		app.warn 'RTER', "Route controller overrided: #{method} #{originalRoute}" if mapper[method]
 		mapper[method] = handler

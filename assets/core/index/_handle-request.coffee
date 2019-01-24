@@ -76,7 +76,7 @@ _handleRequest = (req, ctx)->
 			ctx: value: ctx
 			req: value: req
 		# go to Step 2
-		await _handleRequest2 app, ctx
+		await _handleRequest2 this, ctx
 	catch err
 		ctx.fatalError 'HANDLE-REQUEST', err
 	finally
@@ -169,7 +169,6 @@ _handleRequestCore = (app, ctx)->
 					err = e
 		if err
 			await _uncaughtRequestErrorHandler err, ctx, app
-			.catch (err)=> ctx.fatalError 'HANDLE-REQUEST', err
 	return
 ###*
  * Handle incomming request
