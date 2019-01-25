@@ -202,27 +202,43 @@ exports.settings=
 				throw new Error 'views should be a list of directory paths'
 	####<========================== Errors =============================>####
 	# Error templates
-	errorTemplates:
-		value: null
-		default: (app, mode)->
-			errorCodes = ['404', '404-file', '500']
-			errPath = '../../build/views/errors/'
-			errPath += 'd' if mode is 'dev'
-			# create
-			obj = Object.create null
-			for k in errorCodes
-				obj[k] = path.join __dirname, errPath + k
-			return obj
+	errors:
+		value:
+			# 404:(ctx, errCode, err)-> 'errors/404'
+			# 500:(ctx, errCode, err)-> 'errors/500'
+			else: (ctx, errCode, err)->
+				# status code
+				errCode = 500 unless Number.isSafeInteger errCode
+				ctx.statusCode = errCode
+				# debug
+				if errCode >= 500
+					ctx.fatalError 'UNCAUGHT_ERROR', err
+				else
+					ctx.debug 'UNCAUGHT_ERROR', err
+				# content type
+				ctx.contentType = 'text'
+				# Message
+				result = ["""
+				URI: #{ctx.method} #{ctx.url}
+				Code: #{errCode}
+				"""]
+				# render Error
+				if typeof err is 'object'
+					if err
+						if typeof err.message is 'string'
+							result.push "Message: #{err.message}"
+						if typeof err.stack is 'string'
+							result.push "Stack: #{err.stack}"
+						if 'extra' of err
+							result.push "Caused by: #{err.extra}"
+				else if typeof err is 'string'
+					result.push "Message: #{err}"
+				# send
+				return ctx.send result.join "\n"
 		check: (value)->
-			unless typeof value is 'object' and value
-				throw new Error 'ErrorTemplates a map of "Error-code" to "template path"'
-			throw new Error 'A "500" code template is missing' unless value['500']
-			for k,v in value
-				# unless /^d[0-9]{3}/.test k
-				# 	throw new Error "Error templates: Illegal error code: #{k}"
-				unless typeof v is 'string'
-					throw new Error "Error templates: errorTemplates.#{k} mast be file path"
-			return
+			throw new Error 'Expected object' unless typeof value is 'object' and value
+			throw new Error '"else" option is required and expected function' unless typeof value.else is 'function'
+	####<========================== PLUGINS =============================>####
 	# plugins
 	devPlugins:
 		value: {}

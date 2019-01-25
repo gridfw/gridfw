@@ -10,7 +10,7 @@ _resolveRoute = do ->
 	# staticNodeResult = [1, null, null] # for performance purpose, return this for all static routes
 	# 404 Error node (enable caching)
 	err404NodeHandler = ->
-		throw ERROR_404
+		throw 404
 	err404Node =
 		ALL: err404NodeHandler
 	# resolve dynamic route

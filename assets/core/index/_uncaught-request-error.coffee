@@ -4,34 +4,19 @@
 
 # GridFW::onUncaughtError = 
 _uncaughtRequestErrorHandler = (err, ctx, app)->
-	settings = app.s
-	if err
-		unless err.code?
-			err = new GError 500, err.message, err
-	else
-		err = new GError 520, 'Unknown Error!'
-
-	# everything unless 404 is a fatal error
-	switch err.code
-		when 404
-			ctx.debug 'PAGE NOT FOUND', ctx.url
-			errorKey = '404'
-			statusCd = 404
-		when '404-file'
-			ctx.debug 'File NOT FOUND', ctx.url
-			errorKey = '404-file'
-			statusCd = 404
+	# Get error code
+	if typeof err is 'object'
+		if err
+			errCode = err.code or 500
 		else
-			ctx.fatalError 'UNCAUGHT_ERROR', err
-			errorKey = err.code or '500'
-			statusCd = err.code
-			statusCd = 500 unless typeof statusCd is 'number' and 400 <= statusCd < 600 and Number.isSafeInteger statusCd
-	# render error
-	unless ctx.finished
-		# status
-		ctx.statusCode = statusCd
-		ctx.contentType= 'html'
-		# rener template
-		errorTemplates = settings[<%= settings.errorTemplates %>]
-		await ctx.render errorTemplates[errorKey] || errorTemplates['500'], error: err
+			err = 'Unknown Error!'
+			errCode = 520
+	else 
+		errCode = err
+	# Get handler
+	errorMap = app.s[<%= settings.errors %>]
+	errorHandler= errorMap[errCode] || errorMap.else
+	v = await errorHandler ctx, errCode, err
+	# post process
+	await _handleRequestPostProcess ctx, v unless ctx.finished
 	return

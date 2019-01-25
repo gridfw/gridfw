@@ -148,15 +148,8 @@ _handleRequestCore = (app, ctx)->
 			v = await next()
 		else
 			v = await controllerHandler ctx
-		# execute Controller
-		unless ctx.finished
-			if v in [undefined, ctx]
-				# if a view is set
-				if ctx.view
-					await ctx.render()
-			else
-				await ctx.render v
-				#TODO
+		# execute post process
+		await _handleRequestPostProcess ctx, v unless ctx.finished
 	catch err
 		# excute user defined error handlers
 		if routeNode?.e
@@ -170,6 +163,22 @@ _handleRequestCore = (app, ctx)->
 		if err
 			await _uncaughtRequestErrorHandler err, ctx, app
 	return
+###*
+ * Handler post traitement
+ * @usedBy request handler
+ * @usedBy error handlers
+###
+_handleRequestPostProcess = (ctx, handlerResult)->
+	if handlerResult in [undefined, ctx]
+		# if a view is set
+		if ctx.view
+			return ctx.render ctx.view
+	# when return string, it's view
+	else if typeof handlerResult is 'string'
+		return ctx.render handlerResult
+	# else, it's json
+	else
+		return ctx.json handlerResult
 ###*
  * Handle incomming request
 ###

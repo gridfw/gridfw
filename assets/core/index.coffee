@@ -98,8 +98,6 @@ class GridFW
 			[APP_STARTING_PROMISE]: UNDEFINED
 			[APP_ENABLING_PROMISE]: UNDEFINED
 			[APP_OPTIONS]: UNDEFINED
-			# mode
-			mode: get: -> @s[<%=settings.mode %>]
 			### App connection ###
 			server: UNDEFINED
 			protocol: UNDEFINED
@@ -171,6 +169,8 @@ _defineProperties GridFW.prototype,
 	# mode
 	isDevMode: get: -> @s[<%= settings.mode %>] is <%= app.DEV %>
 	isProdMode: get: -> @s[<%= settings.mode %>] is <%= app.PROD %>
+	# Errors
+	errors: get: -> @s[<%=settings.errors %>]
 
 # consts
 _defineProperties GridFW,
@@ -196,7 +196,6 @@ loggerFactory GridFW.prototype, level: 'debug'
 loggerFactory CONTEXT_PROTO, level: 'debug'
 
 #=include index/_create-context.coffee
-#=include index/_errors.coffee
 #=include index/_log_welcome.coffee
 #=include router/_index.coffee
 #=include index/_handle-request.coffee
