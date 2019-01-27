@@ -106,10 +106,18 @@ class GridFW
 			path: UNDEFINED
 			ip: UNDEFINED
 			ipType: UNDEFINED
+			# info
+			mode: UNDEFINED
+			name: UNDEFINED
+			author: UNDEFINED
+			email: UNDEFINED
+			isDevMode: UNDEFINED
+			isProdMode: UNDEFINED
 			# handle request wraping
 			w: value: []
 			# settings
-			s: value: Array CONFIG.config.length
+			s: value: new Array <%=settings.count %>
+			sInit: _create null # settings init info
 			# locals
 			locals: value: locals
 			data: value: locals
@@ -162,10 +170,6 @@ _defineProperties GridFW.prototype,
 	listening: get: -> @server?.listening || false
 	# framework version
 	version: value: PKG.version
-	# app data
-	name: get: -> @s[<%= settings.name %>]
-	mode: get: -> @s[<%= settings.mode %>]
-	email: get: -> @s[<%= settings.email %>]
 	# mode
 	isDevMode: get: -> @s[<%= settings.mode %>] is <%= app.DEV %>
 	isProdMode: get: -> @s[<%= settings.mode %>] is <%= app.PROD %>

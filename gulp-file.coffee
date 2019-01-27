@@ -6,8 +6,8 @@ include			= require "gulp-include"
 rename			= require "gulp-rename"
 coffeescript	= require 'gulp-coffeescript'
 PluginError		= gulp.PluginError
-cliTable		= require 'cli-table'
-template		= require 'gulp-template' # compile some consts into digits
+
+GfwCompiler		= require '../compiler'
 
 # compile final values (consts to be remplaced at compile time)
 compileConfig= -> # gulp mast be reloaded each time this file is changed!
@@ -24,10 +24,8 @@ compileCoffee = ->
 	gulp.src 'assets/**/[!_]*.coffee', nodir: true
 	# include related files
 	.pipe include hardFail: true
-	# tmp file for debuging
-	.pipe gulp.dest 'tmp'
-	# replace final values (compile time processing)
-	.pipe template(require './config/build/settings').on 'error', errorHandler
+	# template
+	.pipe GfwCompiler.template()
 	# convert to js
 	.pipe coffeescript(bare: true).on 'error', errorHandler
 	# save 

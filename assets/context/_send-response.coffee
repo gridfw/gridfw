@@ -1,31 +1,6 @@
 
 _defineProperties CONTEXT_PROTO,
 	###*
-	 * set status code
-	###
-	status:		value: (status)->
-		if typeof status is 'number'
-			@statusCode = status
-		else if typeof status is 'string'
-			@statusMessage = status
-		else
-			throw new Error 'status expected number or string'
-		this
-	###*
-	 * Send JSON
-	 * @param {Object} data - data to parse
-	###
-	json: value: (data)->
-		# stringify data
-		if @app.s[<%= settings.pretty %>]
-			data = JSON.stringify data, null, "\t"
-		else
-			data = JSON.stringify data
-		# send data
-		@contentType ?= 'application/json'
-		@send data
-	#TODO jsonp
-	###*
 	 * Send response
 	 * @param {string | buffer | object} data - data to send
 	###
