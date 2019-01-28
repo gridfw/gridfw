@@ -3,9 +3,7 @@ http		= require 'http'
 fastDecode	= require 'fast-decode-uri-component'
 Buffer		= require('safe-buffer').Buffer
 encodeurl	= require 'encodeurl'
-sendFile	= require 'send'
 onFinishLib	= require 'on-finished'
-contentDisposition = require 'content-disposition'
 mimeType	= require 'mime-types'
 
 REQUEST_PROTO = require './request'
@@ -99,7 +97,7 @@ CONTEXT_PROTO=
 	### response.write(chunk[, encoding], cb) ###
 	write: (chunk, encoding)->
 		new Promise (resolve, reject)=>
-			@_write chunk, encoding || '<%= app.DEFAULT_ENCODING %>', (err)->
+			@_write chunk, encoding || '<%= DEFAULT_ENCODING %>', (err)->
 				if err then reject err
 				else resolve()
 	### Append http header ###
@@ -119,13 +117,9 @@ CONTEXT_PROTO=
 	acceptsEncodings	: REQUEST_PROTO.acceptsEncodings
 	acceptsCharsets		: REQUEST_PROTO.acceptsCharsets
 	acceptsLanguages	: REQUEST_PROTO.acceptsLanguages
-	upload				: REQUEST_PROTO.upload
 
 # promisify native functions
 # _defineProperties 
-
-#=include _send-response.coffee
-#=include _context-content-types.coffee
 
 gettersOnce CONTEXT_PROTO,
 	### if the request is aborted ###

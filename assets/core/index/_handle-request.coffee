@@ -46,7 +46,7 @@ _handleRequest = (req, ctx)->
 					paramName = '&__proto__'
 				# resolve if registred param
 				# if ref2 = routeParamResolvers[paramName]
-				# 	paramValue = await ref2[1] paramValue, <%= app.QUERY_PARAM %>, ctx
+				# 	paramValue = await ref2[1] paramValue, <%= QUERY_PARAM %>, ctx
 				# groupement
 				if Reflect.has queryParams, paramName
 					ref2 = queryParams[paramName]
@@ -121,7 +121,7 @@ _handleRequestCore = (app, ctx)->
 				# resolve
 				# ref = routeParamResolvers[paramName]
 				# if ref and typeof ref[1] is 'function'
-				params[paramName] = await routeParamResolvers[paramName][1] paramValue, <%= app.PATH_PARAM %>, ctx
+				params[paramName] = await routeParamResolvers[paramName][1] paramValue, <%= PATH_PARAM %>, ctx
 				# else
 				# 	params[paramName] = paramValue
 		# resolve registred query params
@@ -131,9 +131,9 @@ _handleRequestCore = (app, ctx)->
 				paramValue = queryParams[paramName]
 				if Array.isArray paramValue
 					for v, k in paramValue
-						paramValue[k] = await ref2[1] v, <%= app.QUERY_PARAM %>, ctx
+						paramValue[k] = await ref2[1] v, <%= QUERY_PARAM %>, ctx
 				else
-					queryParams[paramName] = await ref2[1] paramValue, <%= app.QUERY_PARAM %>, ctx
+					queryParams[paramName] = await ref2[1] paramValue, <%= QUERY_PARAM %>, ctx
 		# exec wrappers
 		wrappers = routeNode.w
 		if wrappers and wrappers.length

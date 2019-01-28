@@ -25,7 +25,7 @@ _createContext = (app)->
 				contentLength: UNDEFINED
 				contentType: UNDEFINED
 				encoding:
-					value: '<%= app.DEFAULT_ENCODING %>'
+					value: '<%= DEFAULT_ENCODING %>'
 					writable: true
 			return
 		# request class

@@ -2,7 +2,6 @@
 
 http = require 'http'
 ContentTypeParse = require('content-type').parse
-parseRange = require 'range-parser'
 proxyaddr  = require 'proxy-addr'
 fresh		= require 'fresh'
 
@@ -18,47 +17,15 @@ fs		= require 'mz/fs'
 Path	= require 'path'
 
 #=include ../commons/_index.coffee
-#=include _upload.coffee
 
 ### response ###
 REQUEST_PROTO=
-	###*
-	 * Parse Range header field, capping to the given `size`.
-	 *
-	 * Unspecified ranges such as "0-" require knowledge of your resource length. In
-	 * the case of a byte range this is of course the total number of bytes. If the
-	 * Range header field is not given `undefined` is returned, `-1` when unsatisfiable,
-	 * and `-2` when syntactically invalid.
-	 *
-	 * When ranges are returned, the array has a "type" property which is the type of
-	 * range that is required (most commonly, "bytes"). Each array element is an object
-	 * with a "start" and "end" property for the portion of the range.
-	 *
-	 * The "combine" option can be set to `true` and overlapping & adjacent ranges
-	 * will be combined into a single range.
-	 *
-	 * NOTE: remember that ranges are inclusive, so for example "Range: users=0-3"
-	 * should respond with 4 users when available, not 3.
-	 *
-	 * @param {number} size
-	 * @param {object} [options]
-	 * @param {boolean} [options.combine=false]
-	 * @return {number|array}
-	 * @public
-	 ###
-	range: (size, options) ->
-		range = @getHeader 'Range'
-		if range
-			parseRange size, range, options
 	###
 	@deprecated use "getHeader" instead
 	used only to keep compatibility with expressjs
 	###
 	header : (name)-> @getHeader name
 	get: (name)-> @getHeader name
-
-	### upload post data ###
-	upload: _uploadPostData
 
 module.exports = REQUEST_PROTO
 
@@ -70,7 +37,7 @@ gettersOnce REQUEST_PROTO,
 		#Check for HTTP2
 		protocol = if @connection.encrypted then 'https' else 'http'
 		# if trust immediate proxy headers
-		if @s[<%= settings.trustProxyFunction %>] this, 0
+		if @s[<%= settings.trustProxy %>] this, 0
 			h = @getHeader 'X-Forwarded-Proto'
 			if h
 				i = h.indexOf ','
@@ -79,7 +46,7 @@ gettersOnce REQUEST_PROTO,
 	### if we are using https ###
 	secure: -> @protocol in ['https', 'http2'] #TODO check for this
 	### client IP ###
-	ip: -> proxyaddr this, @s[<%= settings.trustProxyFunction %>]
+	ip: -> proxyaddr this, @s[<%= settings.trustProxy %>]
 
 	###*
 	 * When "trust proxy" is set, trusted proxy addresses + client.
@@ -93,7 +60,7 @@ gettersOnce REQUEST_PROTO,
 	 * @public
 	###
 	ips: ->
-		addrs = proxyaddr this, @s[<%= settings.trustProxyFunction %>]
+		addrs = proxyaddr this, @s[<%= settings.trustProxy %>]
 		addrs.reverse().pop()
 		addrs
 	###*
@@ -106,7 +73,7 @@ gettersOnce REQUEST_PROTO,
 	 * @return {String}
 	###
 	hostname: ->
-		trust = @s[<%= settings.trustProxyFunction %>]
+		trust = @s[<%= settings.trustProxy %>]
 		host = @getHeader('X-Forwarded-Host')
 		if host and trust @connection.remoteAddress, 0
 			host #TODO check for IPv6 lateral support

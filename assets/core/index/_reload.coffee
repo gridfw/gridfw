@@ -77,98 +77,66 @@ _reloadApp = (app, options)->
 	appSettings = app.s
 	# reload settings
 	await _reloadSettings app, options
-	# set logger settings
-	app.logLevel = appSettings[<%= settings.logLevel %>]
-	# if use view cache
-	app.debug 'CORE', 'Empty view cache'
-	if appSettings[<%= settings.viewCache %>]
-		if app[VIEW_CACHE]
-			app[VIEW_CACHE].clear()
-		else
-			app[VIEW_CACHE] = new LRUCache
-				max: appSettings[<%= settings.viewCacheMax %>]
-	else
-		app[VIEW_CACHE] = null
+	# Set info settings
+	_defineReconfigurableProperties app,
+		mode: appSettings[<%= settings.mode %>]
+		name: appSettings[<%= settings.name %>]
+		author: appSettings[<%= settings.author %>]
+		email: appSettings[<%= settings.email %>]
+		isDevMode: appSettings[<%= settings.mode %>] is 'dev'
+		isProdMode: appSettings[<%= settings.mode %>] is 'prod'
 	# reload plugins
-	await _reloadPlugins app
+	if options?.plugins
+		throw new Error 'options.plugin expected object' unless typeof options.plugins is 'object'
+		if appSettings[<%= settings.enableDefaultPlugins %>]
+			Object.setPrototypeOf options.plugins, _PLUGINS
+	await _reloadPlugins app, options.plugins or _PLUGINS
 	return
 
 ### reload settings ###
 _reloadSettings = (app, options)->
 	# load options from file
-	unless options
-		options = path.join process.cwd() , 'gridfw-config'
+	if (not options) or (typeof options is 'string')
+		cfgPath = options or path.join process.cwd() , CFG_FILE
 		try
-			options = require options
+			# remove already existing cache
+			delete require.cache[require.resolve path]
+			# reload
+			options = require cfgPath
 		catch err
-			if err.message.indexOf('gridfw-config') isnt -1
-				app.warn 'CORE', "Configuration file missing at: #{options}"
-				options = null
+			if err.message.indexOf(CFG_FILE) isnt -1
+				if options
+					throw new GError 500, 'Mising config file', err
+				else
+					app.warn 'CORE', "Configuration file missing at: #{options}"
+					options = null
 			else
 				throw new GError 500, 'Config file contains errors', err
-	else if typeof options is 'string'
-		try
-			options = require options
-		catch err
-			if err.message.indexOf('gridfw-config') isnt -1
-				app.error 'CORE', "Configuration file missing at: #{options}"
-				throw new GError 500, 'Mising config file', err
-			else
-				throw new GError 500, 'Config file contains errors', err
-	# load default settings
-	appSettings = app.s
-	for v, k in CONFIG.config
-		appSettings[k] = v
-	configKies = CONFIG.kies
-	# check and default options
-	if options
-		checkSettings = CONFIG.check
-		# check options
-		for k,v of options
-			throw new Error "Unknown option: #{k}" unless checkSettings[k]
-			checkSettings[k] v
-			# copy to settings
-			appSettings[configKies[k]] = v
-	# resolve default settings based on mode
-	mode = appSettings[<%= settings.mode %>]
-	for k,v of CONFIG.default
-		unless Reflect.hasOwnProperty options, k
-			appSettings[configKies[k]] = v app, mode
-	# plugins settings
-	if options?.plugins
-		Object.setPrototypeOf options.plugins, CONFIG.config[<%= settings.plugins %>]
+	# Init settings
+	_settingsInit app, options
 	return
 
 ###*
  * Reload plugins
 ###
-_reloadPlugins = (app)->
+_reloadPlugins = (app, pluginsMap)->
 	appPlugs= app[PLUGINS]
 	plugSet = new Set Object.keys appPlugs
 	promiseAll = []
 	# Reload / add plugins
-	_reloadPlugs app, app.s[<%= settings.plugins %>], promiseAll
-	# dev plugs
-	if app.isDevMode
-		_reloadPlugs app, app.s[<%= settings.devPlugins %>], promiseAll
+	for k, options of pluginsMap
+		# plugin contructor
+		pluginConstructor = require options.require || k
+		throw new Error "Unsupported plugin: #{options.require || k}" unless typeof pluginConstructor is 'function'
+		# reload plugin
+		promiseAll.push _CreateReloadPlugin app, k, pluginConstructor, options
 	# desctroy removed plugins
 	if plugSet.size
 		plugSet.forEach (k)->
-			app.info 'PLGN', 'Destroy plugin #{plugname}'
+			app.info 'PLGN', 'Destroy plugin: #{plugname}'
 			promiseAll.push appPlugs[k].desctroy()
 	# wait for plugins to be reloaded
 	return Promise.all promiseAll
-
-_reloadPlugs = (app, pluginsMap, promiseAll)->
-	if pluginsMap
-		for k, options of pluginsMap
-			# plugin contructor
-			pluginConstructor = require options.require || k
-			throw new Error "Unsupported plugin: #{options.require || k}" unless typeof pluginConstructor is 'function'
-			# reload plugin
-			promiseAll.push _CreateReloadPlugin app, k, pluginConstructor, options
-	return
-
 
 _CreateReloadPlugin = (app, plugname, pluginConstructor, settings)->
 	app[PLUGIN_STARTING].add plugname # debug purpose

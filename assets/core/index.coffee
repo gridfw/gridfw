@@ -3,6 +3,7 @@
 http = require 'http'
 path = require 'path'
 fs	 = require 'mz/fs'
+URL	 = require('url').URL
 LRUCache	= require 'lru-cache'
 
 fastDecode	= require 'fast-decode-uri-component'
@@ -15,12 +16,8 @@ CONTEXT_PROTO= require '../context'
 REQUEST_PROTO= require '../context/request'
 GError		= require '../lib/error'
 
-PluginWrapper = require './plugin-wrapper'
-
-# default config
-CONFIG = require './config'
-
 #=include ../commons/_index.coffee
+#=include _settings.coffee
 
 # create empty attribute for performance
 UNDEFINED=
@@ -35,6 +32,7 @@ EMPTY_PARAM = [EMPTY_REGEX, EMPTY_PARAM_RESOLVER] # do not change
 # void function (do not change)
 # VOID_FX = ->
 
+CFG_FILE	= 'gridfw-config'
 # View cache
 VIEW_CACHE = Symbol 'View cache'
 # Routes
@@ -55,6 +53,11 @@ APP_STARTING_PROMISE	= Symbol 'app starting promise' # loading promise
 APP_ENABLING_PROMISE	= Symbol 'app enabling promise' # loading promise
 REQ_HANDLER				= Symbol 'request handler'
 APP_OPTIONS				= Symbol 'App starting options' # used as flag for @reload
+
+<%
+const PATH_PARAM = 0
+const QUERY_PARAM = 1
+%>
 
 
 # default used protocol when non specified, in [http, https, http2]
@@ -106,13 +109,6 @@ class GridFW
 			path: UNDEFINED
 			ip: UNDEFINED
 			ipType: UNDEFINED
-			# info
-			mode: UNDEFINED
-			name: UNDEFINED
-			author: UNDEFINED
-			email: UNDEFINED
-			isDevMode: UNDEFINED
-			isProdMode: UNDEFINED
 			# handle request wraping
 			w: value: []
 			# settings
@@ -170,20 +166,14 @@ _defineProperties GridFW.prototype,
 	listening: get: -> @server?.listening || false
 	# framework version
 	version: value: PKG.version
-	# mode
-	isDevMode: get: -> @s[<%= settings.mode %>] is <%= app.DEV %>
-	isProdMode: get: -> @s[<%= settings.mode %>] is <%= app.PROD %>
 	# Errors
 	errors: get: -> @s[<%=settings.errors %>]
 
 # consts
 _defineProperties GridFW,
-	# consts
-	DEV_MODE: value: <%= app.DEV %>
-	PROD_MODE: value: <%= app.PROD %>
 	# param
-	PATH_PARAM : value: <%= app.PATH_PARAM %>
-	QUERY_PARAM: value: <%= app.QUERY_PARAM %>
+	PATH_PARAM : value: <%= PATH_PARAM %>
+	QUERY_PARAM: value: <%= QUERY_PARAM %>
 	# framework version
 	version: value: PKG.version
 # Logger
@@ -191,7 +181,7 @@ _defineProperties GridFW.prototype,
 	logLevel:
 		get: -> @s[<%= settings.logLevel %>]
 		set: (level)->
-			consoleMode = if @s[<%= settings.mode %>] is <%= app.DEV %> then 'dev' else 'prod'
+			consoleMode = @mode
 			loggerFactory this, level: level, mode: consoleMode
 			loggerFactory @Context.prototype, level: level, mode: consoleMode
 			@s[<%= settings.logLevel %>] = level

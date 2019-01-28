@@ -87,18 +87,18 @@ exports.settings=
 	###*
 	 * Upload default directory
 	###
-	uploadDir:
-		default: (app, mode)-> require('os').tmpdir()
-		check: (dir)->
-			throw new Error "Dir path expected string" unless typeof dir is 'string'
-			return
+	# uploadDir:
+	# 	default: (app, mode)-> require('os').tmpdir()
+	# 	check: (dir)->
+	# 		throw new Error "Dir path expected string" unless typeof dir is 'string'
+	# 		return
 	###*
 	 * Upload timeout
 	###
-	uploadTimeout:
-		value: 10 * 60 * 1000 # 10min
-		check: (tmout)->
-			throw new Error "Expected positive integer" unless tmout is Infinity or Number.isSafeInteger(tmout) and tmout > 0
+	# uploadTimeout:
+	# 	value: 10 * 60 * 1000 # 10min
+	# 	check: (tmout)->
+	# 		throw new Error "Expected positive integer" unless tmout is Infinity or Number.isSafeInteger(tmout) and tmout > 0
 	####<========================== Router =============================>####
 	###*
 	 * Route cache
