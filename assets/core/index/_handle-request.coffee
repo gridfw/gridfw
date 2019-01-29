@@ -25,7 +25,7 @@ _handleRequest = (req, ctx)->
 				if rawPath.endsWith '/'
 					rawPath = rawPath.slice 0, -1
 					rawPath = rawPath.concat '?', rawUrlQuery if rawUrlQuery
-					ctx.permanentRedirect rawPath
+					ctx.redirectPermanent rawPath
 					return
 			else if ref is off
 				rawPath = rawPath.slice 0, -1 if rawPath.endsWith '/'

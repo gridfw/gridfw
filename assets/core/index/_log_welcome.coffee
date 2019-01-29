@@ -24,15 +24,15 @@ _console_info = (app)->
 	app.info 'CORE', '╒═════════════════════════════════════════════════════════════╕'
 	app.info 'CORE', "\tREADY"
 	# if dev mode or procution
-	if app.mode is <%= app.PROD %>
+	if app.isProdMode
 		app.info 'CORE', "\t√ Production Mode"
 	else
 		app.warn 'CORE', "\tDeveloppement Mode."
 		app.warn 'CORE', "\t[!] Enable prodution mode to boost performance"
 
-	app.info 'CORE', "\t√ App name: #{app.s[<%=settings.name %>]}"
-	app.info 'CORE', "\t√ App Author: #{app.s[<%=settings.author %>]}"
-	app.info 'CORE', "\t√ Admin email: #{app.s[<%=settings.email %>]}"
+	app.info 'CORE', "\t√ App name: #{app.name}"
+	app.info 'CORE', "\t√ App Author: #{app.author}"
+	app.info 'CORE', "\t√ Admin email: #{app.email}"
 
 	app.info 'CORE', "\t█ Server listening At: #{app.protocol}://#{app.host}:#{app.port}#{app.path}"
 	app.info 'CORE', '╘═════════════════════════════════════════════════════════════╛'

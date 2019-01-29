@@ -1,5 +1,6 @@
 'use strict'
 http		= require 'http'
+URL			= require('url').URL
 fastDecode	= require 'fast-decode-uri-component'
 Buffer		= require('safe-buffer').Buffer
 encodeurl	= require 'encodeurl'
@@ -26,67 +27,28 @@ CONTEXT_PROTO=
 	###*
 	 * redirect to this URL
 	 * @param {string} url - target URL
-	 * @param {boolean} isPermanent - If this is a permanent or temp redirect
-	 * (use this.redirectPermanent(url) in case of permanent redirect)
 	###
-	redirect: (url, isPermanent)->
-		# set location header
+	redirect: (url)->
 		@setHeader 'location', encodeurl url
-		#TODO add some response (depending on "accept" header: text, html, json, ...)
-		# status code
-		@statusCode = if isPermanent then 302 else 301
-		# end request
+		@statusCode = 302
 		@end()
 	###*
 	 * Permanent redirect to this URL
 	###
-	permanentRedirect: (url)-> @redirect url, true
+	redirectPermanent: (url)->
+		@setHeader 'location', encodeurl url
+		@statusCode = 301
+		@end()
 	###*
 	 * Redirect back (go back to referer)
 	###
-	redirectBack: -> @redirect @req.getHeader('Referrer') || '/'
-
-	###*
-	 * Render page
-	 * @param  {[type]} path [description]
-	 * @return {[type]}      [description]
-	###
-	render: (path, locals)->
-		if locals
-			Object.setPrototypeOf locals, @locals
-		else
-			locals = _create @locals
-		@app._render path, locals
-		.then (html)=>
-			# @contentType = 'text/html'
-			@send html
+	redirectBack: -> @redirect @req.getHeader('Referrer') || @s[<%= settings.baseURL %>]
 
 	### content type ###
 	type: (type)->
 		throw new Error 'type expected string' unless typeof type is 'string'
 		@contentType = type
 		this
-		# switch arguments.length
-		# 	when 1
-		# 		@_type = type
-		# 		this
-		# 	when 0
-		# 		@_type
-		# switch arguments.length
-		# 	when 1, 2
-		# 		if type is 'bin'
-		# 			@setHeader 'content-type', 'application/octet-stream'
-		# 		else
-		# 			@setHeader 'content-type', (CONTENT_TYPE_MAP[type] || type).concat '; charset=', encoding || DEFAULT_ENCODING
-		# 		this
-		# 	when 0
-		# 		@getHeader 'content-type'
-		# 	when 2
-		# 		@setHeader 'content-type', type
-		# 		this
-		# 	else
-		# 		throw new Error 'Illegal arguments'
-	
 
 	### ends request ###
 	end: (data)->

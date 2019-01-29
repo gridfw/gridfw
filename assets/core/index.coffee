@@ -33,8 +33,7 @@ EMPTY_PARAM = [EMPTY_REGEX, EMPTY_PARAM_RESOLVER] # do not change
 # VOID_FX = ->
 
 CFG_FILE	= 'gridfw-config'
-# View cache
-VIEW_CACHE = Symbol 'View cache'
+
 # Routes
 # ALL_ROUTES	= Symbol 'All routes'
 STATIC_ROUTES	= Symbol 'Static routes'
@@ -122,8 +121,6 @@ class GridFW
 			# param resolvers
 			$: value: _create null,
 				'*': value: EMPTY_PARAM # wildcard
-			# view cache
-			[VIEW_CACHE]: UNDEFINED
 			# Routes
 			# [ALL_ROUTES]: value: _create null
 			[STATIC_ROUTES]: value: _create null
@@ -194,7 +191,6 @@ loggerFactory CONTEXT_PROTO, level: 'debug'
 #=include router/_index.coffee
 #=include index/_handle-request.coffee
 #=include index/_uncaught-request-error.coffee
-#=include index/_render.coffee
 #=include index/_listen.coffee
 #=include index/_close.coffee
 #=include index/_query-parser.coffee
