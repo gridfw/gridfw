@@ -199,6 +199,7 @@ loggerFactory CONTEXT_PROTO, level: 'debug'
 #=include index/_route-cache-manager.coffee
 #=include index/_static-files.coffee
 #=include index/_mount.coffee
+#=include index/_extends.coffee
 
 # exports
 module.exports = GridFW

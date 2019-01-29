@@ -1,18 +1,13 @@
 'use strict'
 http		= require 'http'
 URL			= require('url').URL
-fastDecode	= require 'fast-decode-uri-component'
-Buffer		= require('safe-buffer').Buffer
+# fastDecode	= require 'fast-decode-uri-component'
 encodeurl	= require 'encodeurl'
-onFinishLib	= require 'on-finished'
-mimeType	= require 'mime-types'
 
 REQUEST_PROTO = require './request'
 
 {gettersOnce} = require '../lib/define-getter-once'
 GError			= require '../lib/error'
-
-
 
 #=include ../commons/_index.coffee
 
