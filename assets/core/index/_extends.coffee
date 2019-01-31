@@ -26,6 +26,12 @@ GridFW::addProperties = (properties)->
 				# if override
 				if k of target
 					descriptor2 = Object.getOwnPropertyDescriptor target, k
+					# continue if the same
+					if 'value' of descriptor2
+						continue if descriptor2.value is descrptr.value
+					else
+						continue if (descriptor2.get is descrptr.get) and (descriptor2.set is descrptr.set)
+					# add property
 					if descriptor2.configurable
 						app.warn 'ADD-PROPERTY', "Override property #{p}.#{k}"
 					else
