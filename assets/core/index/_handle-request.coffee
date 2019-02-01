@@ -69,7 +69,10 @@ _handleRequest = (req, ctx)->
 				configurable: on
 			# params
 			params: value: _create null
-			query: value: queryParams
+			rawQuery: value: queryParams
+			query:
+				value: queryParams
+				configurable: on
 		# add to request
 		_defineProperties req,
 			res: value: ctx
@@ -126,14 +129,22 @@ _handleRequestCore = (app, ctx)->
 				# 	params[paramName] = paramValue
 		# resolve registred query params
 		queryParams = ctx.query
+		queryP = _create null
+		_defineProperty ctx, 'query',
+			value: queryP
+			configurable: on
 		for paramName of queryParams
 			if ref2 = routeParamResolvers[paramName]
 				paramValue = queryParams[paramName]
 				if Array.isArray paramValue
-					for v, k in paramValue
-						paramValue[k] = await ref2[1] v, <%= QUERY_PARAM %>, ctx
+					paramValue2 = []
+					for v in paramValue
+						paramValue2.push await ref2[1] v, <%= QUERY_PARAM %>, ctx
 				else
-					queryParams[paramName] = await ref2[1] paramValue, <%= QUERY_PARAM %>, ctx
+					paramValue2= await ref2[1] paramValue, <%= QUERY_PARAM %>, ctx
+				queryP[paramName]= paramValue2
+			else
+				queryP[paramName]= queryParams[paramName]
 		# exec wrappers
 		wrappers = routeNode.w
 		if wrappers and wrappers.length

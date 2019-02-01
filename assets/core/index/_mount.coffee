@@ -44,28 +44,56 @@ _defineProperty GridFW.prototype, '_mountHandler',
 # mount handler
 _mountHandler = (ctx)->
 	settings = @s
-	# sub path
+	# Sub path
 	rawPath = '/' + ctx.params['*']
-	# trailing slash
+	# Trailing slash
 	unless rawPath is '/'
 		unless settings[<%= settings.trailingSlash %>]
 			rawPath = rawPath.slice 0, -1 if rawPath.endsWith '/'
-	# wrap context
-	ctx2 = _create ctx,
-		app: value: this
-		s: value: settings
-		path:
+
+	# Create context
+	req = ctx.req
+	ctx2 = new @Context ctx.socket
+	req2 = new @Request req.socket
+
+	# basic ctx attributes
+	_defineProperties ctx2,
+		req: value: req2
+		res: value: ctx2
+		# url
+		method: value: req.method
+		url:value: ctx.url
+		path: # changeable by third middleware (like i18n or URL rewriter)
 			value: rawPath
 			writable: on
 			configurable: on
+		# params
+		params: value: _create null
+		rawQuery: value: ctx.rawQuery
+		query:
+			value: ctx.rawQuery
+			configurable: on
+		# underlying send response
 		_end: value: (data, cb)-> ctx._end data, cb
 		_write: value: (chunk, encoding, cb)-> ctx._write chunk, encoding, cb
-	# locals
-	locals = _create @locals,
+	# add to request
+	_defineProperties req2,
+		res: value: ctx2
 		ctx: value: ctx2
-	_defineProperties ctx2,
-		locals: value: locals
-		data: value: locals
+		req: value: req2
+		headers: value: req.headers
+
+	# wrap context
+	# ctx2 = _create ctx,
+		console.log '-- headers: ', req.headers
+		console.log '============================='
+		console.log '-- headers2: ', req2.headers
+	# locals
+	# locals = _create @locals,
+	# 	ctx: value: ctx2
+	# _defineProperties ctx2,
+	# 	locals: value: locals
+	# 	data: value: locals
 	# call context handling
 	return _handleRequest2 this, ctx2
 			
