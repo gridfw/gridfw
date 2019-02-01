@@ -15,9 +15,8 @@ GridFW::addProperties = (properties)->
 	for p in ['App', 'Context', 'Request']
 		if p of properties
 			src = properties[p]
-			target= if p is 'App' then this else @[p]
+			target= if p is 'App' then this else @[p].prototype
 			throw new Error "#{p} expected object" unless (typeof src is 'object') and src
-			_extendsAddProperties this, src, (), k
 			# add properties
 			for k,v of src
 				# descriptor
@@ -33,14 +32,14 @@ GridFW::addProperties = (properties)->
 						continue if (descriptor2.get is descrptr.get) and (descriptor2.set is descrptr.set)
 					# add property
 					if descriptor2.configurable
-						app.warn 'ADD-PROPERTY', "Override property #{p}.#{k}"
+						@warn 'CORE', "Override property #{p}.#{k}"
 					else
-						app.error 'ADD-PROPERTY', "Could not override property #{p}.#{k}"
+						@error 'CORE', "Could not override property #{p}.#{k}"
 						continue
 				else
-					app.error 'ADD-PROPERTY', "Add property #{p}.#{k}"	
+					@debug 'CORE', "Add property #{p}.#{k}"	
 				# Add property
-				_defineProperty target, k, descriptor
+				_defineProperty target, k, descrptr
 	return
 ###*
  * remove app methods and attributes
@@ -59,12 +58,12 @@ GridFW::removeProperties = (properties)->
 	for p in ['App', 'Context', 'Request']
 		if p of properties
 			src = properties[p]
-			target = if p is 'App' then this else @[p]
+			target = if p is 'App' then this else @[p].prototype
 			throw new Error "#{p} expected object" unless (typeof src is 'object') and src
 			# delete properties
 			for k,v of src
 				if v is target[k]
 					delete target[k]
-					app.debug 'ADD-PROPERTY', "Remove property #{p}.#{k}"
+					@debug 'CORE', "Remove property #{p}.#{k}"
 	return
 

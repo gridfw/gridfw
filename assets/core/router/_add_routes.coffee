@@ -123,11 +123,11 @@ _createRouteNode = (app, method, route, handler)->
 		app.debug 'RTER', "Map dynamic\t: #{method} #{originalRoute}"
 		route = route.replace /\/([^?][^\/]*)/g, (v)->
 			v = v.toLowerCase() if ignoreCase
-			encodeurl v
+			Encodeurl v
 	else
 		app.debug 'RTER', "Map static\t: #{method} #{originalRoute}"
 		route = route.toLowerCase() if ignoreCase
-		route = encodeurl route
+		route = Encodeurl route
 	# get or create route tree
 	mapper = _createRouteTree app, route
 	# add controller

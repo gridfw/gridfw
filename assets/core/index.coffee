@@ -1,23 +1,28 @@
 'use strict'
 
 http = require 'http'
-path = require 'path'
-fs	 = require 'mz/fs'
+Path = require 'path'
+# fs	 = require 'mz/fs'
 URL	 = require('url').URL
 LRUCache	= require 'lru-cache'
 
-fastDecode	= require 'fast-decode-uri-component'
-encodeurl	= require 'encodeurl'
+FastDecode	= require 'fast-decode-uri-component'
+Encodeurl	= require 'encodeurl'
 
-loggerFactory = require 'gridfw-logger'
 
 PKG			= require '../../package.json'
 CONTEXT_PROTO= require '../context'
 REQUEST_PROTO= require '../context/request'
 GError		= require '../lib/error'
 
+# cache
+LoggerFactory = require '../../../gridfw-logger'
+Cache = require '../../../cache' #TODO
+ByteParser = require 'bytes'
+
 #=include ../commons/_index.coffee
 #=include _settings.coffee
+#=include _default-plugins.coffee
 
 # create empty attribute for performance
 UNDEFINED=
@@ -84,9 +89,9 @@ class GridFW
 	###
 	constructor: (options)->
 		# print logo
-		unless GridFW.running
-			GridFW.running = yes
-			_console_logo this
+		# unless GridFW.running
+		# 	GridFW.running = yes
+		# 	_console_logo this
 		# locals
 		locals = _create null,
 			app: value: this
@@ -137,6 +142,15 @@ class GridFW
 			# mounted apps
 			mounted: UNDEFINED # list of all mounted apps
 			mountedTo: UNDEFINED # list of all parent apps
+			# js-cache
+			CACHE: value: new Cache
+				# when removing item from cache
+				onRemove: (key)-> delete require.cache[require.resolve key]
+				# create element if not already in cache
+				create: (key)-> require key
+				# log
+				error: (err)=> @error 'VIEW-CACHE', err
+				info: (info)=> @info 'VIEW-CACHE', info
 		# create context
 		_createContext this
 		# process off listener
@@ -179,12 +193,12 @@ _defineProperties GridFW.prototype,
 		get: -> @s[<%= settings.logLevel %>]
 		set: (level)->
 			consoleMode = @mode
-			loggerFactory this, level: level, mode: consoleMode
-			loggerFactory @Context.prototype, level: level, mode: consoleMode
+			LoggerFactory this, level: level, mode: consoleMode
+			LoggerFactory @Context.prototype, level: level, mode: consoleMode
 			@s[<%= settings.logLevel %>] = level
 			return
-loggerFactory GridFW.prototype, level: 'debug'
-loggerFactory CONTEXT_PROTO, level: 'debug'
+LoggerFactory GridFW.prototype, level: 'debug'
+LoggerFactory CONTEXT_PROTO, level: 'debug'
 
 #=include index/_create-context.coffee
 #=include index/_log_welcome.coffee

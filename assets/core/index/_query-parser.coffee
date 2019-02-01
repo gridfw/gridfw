@@ -20,8 +20,8 @@ _defineProperties GridFW.prototype,
 				# parse
 				idx = part.indexOf '='
 				if idx isnt -1
-					result.push (fastDecode part.substr 0, idx), (fastDecode part.substr idx + 1)
+					result.push (FastDecode part.substr 0, idx), (FastDecode part.substr idx + 1)
 				else
-					result.push (fastDecode part), ''
+					result.push (FastDecode part), ''
 		# return
 		result

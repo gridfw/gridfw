@@ -6,6 +6,6 @@ GridFW::static = (filePath, options)->
 	(ctx)->
 		fPath = filePath
 		if ctx.params['*']
-			fPath = path.join filePath, ctx.params['*']
+			fPath = Path.join filePath, ctx.params['*']
 		# return send file promise
 		ctx.sendFile fPath, options

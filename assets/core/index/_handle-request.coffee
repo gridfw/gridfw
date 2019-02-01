@@ -4,7 +4,7 @@ _handleRequest = (req, ctx)->
 		# settings
 		settings = @s
 		# request timeout
-		# if  i = settings[<%= settings.reqtimeout %>]
+		# if  i = settings[<-%= settings.reqtimeout %->]
 		# 	req.setTimeout i
 		# 	req.connection.on 'timeout', ->
 		# 		ctx.fatalError 'HANDLE-REQUEST', 'Request timeout'
@@ -116,7 +116,7 @@ _handleRequestCore = (app, ctx)->
 			params = ctx.params
 			while rawPI < rawPLen
 				paramName = routeDescriptor[rawPI]
-				paramValue= fastDecode routeDescriptor[++rawPI]
+				paramValue= FastDecode routeDescriptor[++rawPI]
 				++rawPI
 				# resolve
 				# ref = routeParamResolvers[paramName]

@@ -32,5 +32,12 @@ _defineProperties GridFW.prototype,
 			throw new Error 'Illegal plugin constructor' unless typeof pluginConstructor is 'string'
 			pluginConstructor = require pluginConstructor
 		name ?= pluginConstructor.name
+		# settings
+		if settings?
+			throw new Error 'settings expected object' unless typeof settings is 'object'
+			throw new Error 'Illegal require setting' if settings.require?
+			settings.require = pluginConstructor
+		else
+			settings = {require: pluginConstructor}
 		# create plugin
-		return _CreateReloadPlugin this, name, pluginConstructor, settings
+		return _CreateReloadPlugin this, name, settings

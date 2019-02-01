@@ -3,11 +3,17 @@ gutil			= require 'gulp-util'
 fs				= require 'fs'
 # minify		= require 'gulp-minify'
 include			= require "gulp-include"
+uglify			= require('gulp-uglify-es').default
 rename			= require "gulp-rename"
 coffeescript	= require 'gulp-coffeescript'
 PluginError		= gulp.PluginError
 
 GfwCompiler		= require '../compiler'
+
+# settings
+settings=
+	mode: gutil.env.mode || 'dev'
+	isProd: gutil.env.mode is 'prod'
 
 # compile final values (consts to be remplaced at compile time)
 # compileConfig= -> # gulp mast be reloaded each time this file is changed!
@@ -21,19 +27,25 @@ GfwCompiler		= require '../compiler'
 # 	.pipe gulp.dest 'build/core/'
 # handlers
 compileCoffee = ->
-	gulp.src 'assets/**/[!_]*.coffee', nodir: true
-	# include related files
-	.pipe include hardFail: true
-	# template
-	.pipe GfwCompiler.template()
-	# convert to js
-	.pipe coffeescript(bare: true).on 'error', GfwCompiler.logError
+	glp = gulp.src 'assets/**/[!_]*.coffee', nodir: true
+		# include related files
+		.pipe include hardFail: true
+		# template
+		.pipe GfwCompiler.template(settings).on 'error', GfwCompiler.logError
+		# convert to js
+		.pipe coffeescript(bare: true).on 'error', GfwCompiler.logError
+
+	# if is prod
+	if settings.isProd
+		glp = glp.pipe uglify()
 	# save 
-	.pipe gulp.dest 'build'
-	.on 'error', GfwCompiler.logError
+	glp.pipe gulp.dest 'build'
+		.on 'error', GfwCompiler.logError
 # watch files
-watch = ->
-	gulp.watch ['assets/**/*.coffee'], compileCoffee
+watch = (cb)->
+	unless settings.isProd
+		gulp.watch ['assets/**/*.coffee'], compileCoffee
+	cb()
 	return
 
 # default task

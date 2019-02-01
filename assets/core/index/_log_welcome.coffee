@@ -3,9 +3,9 @@ if require.main is module
 	console.error "GridFW>>\tCould not be self run, See @Doc for more info, or run example"
 
 # print console welcome message
-_console_logo = (app) ->
-	# print logo
-	console.log """
+# _console_logo = (app) ->
+# print logo
+console.log """
 \x1b[36m┌─────────────────────────────────────────────────────────────────────────────────────────┐
 
 \t\t    _____ ______  _____ ______  _________ ___       ___  
@@ -16,7 +16,7 @@ _console_logo = (app) ->
 \t\t  \\ \\__/ ( ( \\ \\_)_| |__/ /__/ /(   )       \\  ( )  /    
 \t\t   \\____/ )_) \\__/_____(______/  \\_/         \\_/ \\_/ 
 
-\t\t\tFramework version: #{app.version}
+\t\t\tFramework version: #{GridFW.version}
 \x1b[36m ─────────────────────────────────────────────────────────────────────────────────────────\x1b[0m\n"""
 
 _console_info = (app)->

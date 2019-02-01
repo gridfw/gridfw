@@ -8,7 +8,6 @@ REQUEST_PROTO = require './request'
 
 {gettersOnce} = require '../lib/define-getter-once'
 GError			= require '../lib/error'
-
 #=include ../commons/_index.coffee
 
 # create empty attribute for performance
