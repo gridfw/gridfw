@@ -16,8 +16,9 @@ REQUEST_PROTO= require '../context/request'
 GError		= require '../lib/error'
 
 # cache
-LoggerFactory = require '../../../gridfw-logger'
-Cache = require '../../../cache' #TODO
+LoggerFactory = require 'gridfw-logger'
+Cache = require '../../../cache'
+# Cache = require 'gridfw-cache'
 ByteParser = require 'bytes'
 
 #=include ../commons/_index.coffee

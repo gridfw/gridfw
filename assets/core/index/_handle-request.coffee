@@ -82,6 +82,8 @@ _handleRequest = (req, ctx)->
 		await _handleRequest2 this, ctx
 	catch err
 		ctx.fatalError 'HANDLE-REQUEST', err
+		unless ctx.finished
+			ctx.statusCode = 500
 	finally
 		# close the request if not yeat closed
 		unless ctx.finished

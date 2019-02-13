@@ -6,9 +6,8 @@ include			= require "gulp-include"
 uglify			= require('gulp-uglify-es').default
 rename			= require "gulp-rename"
 coffeescript	= require 'gulp-coffeescript'
-PluginError		= gulp.PluginError
 
-GfwCompiler		= require '../compiler'
+GfwCompiler		= require 'gridfw-compiler'
 
 # settings
 settings=
