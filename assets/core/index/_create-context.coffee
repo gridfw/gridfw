@@ -43,8 +43,14 @@ _createContext = (app)->
 	_defineProperties AppContext.prototype, Object.getOwnPropertyDescriptors CONTEXT_PROTO
 	_defineProperties AppRequest.prototype, Object.getOwnPropertyDescriptors REQUEST_PROTO
 
+	# sub app context prototype wrapper
+	subAppCtxProto = _create AppContext.prototype, SUB_APP_WRAPPER.context
+	subAppReqProto = _create AppRequest.prototype, SUB_APP_WRAPPER.request
 	# add to app
 	_defineProperties app,
 		Context: value: AppContext
 		Request: value: AppRequest
+		# sub app wrappers
+		SubAppContext: value: subAppCtxProto
+		SubAppRequest: value: subAppReqProto
 	return

@@ -110,6 +110,7 @@ _handleRequestCore = (app, ctx)->
 	try
 		# get route mapper
 		# [_cacheLRU, node, controllerHandler, param1Name, param1Value, ...]
+		console.log '--- resolve route:', ctx.method, ' ', ctx.path
 		routeDescriptor = _resolveRoute app, ctx.method, ctx.path
 		routeNode = routeDescriptor[1]
 		controllerHandler = routeDescriptor[2]

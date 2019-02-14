@@ -29,8 +29,7 @@ class GError extends Error
 		extra: @extra
 	toString: ->
 		err = "\nGError[#{@code}]: #{@stack}\n"
-		extra = @extra
-		if extra
+		if extra = @extra
 			if extra instanceof GError
 				extra = extra.toString()
 			else if extra instanceof Error

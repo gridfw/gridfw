@@ -8,6 +8,7 @@ Common utilites
 _create = Object.create
 _defineProperty = Object.defineProperty
 _defineProperties = Object.defineProperties
+_assign= Object.assign
 
 _defineReconfigurableProperties = (obj, properties)->
 	properties = Object.getOwnPropertyDescriptors properties

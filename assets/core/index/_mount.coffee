@@ -43,59 +43,55 @@ _defineProperty GridFW.prototype, '_mountHandler',
 
 # mount handler
 _mountHandler = (ctx)->
-	settings = @s
-	# Sub path
-	rawPath = '/' + ctx.params['*']
-	# Trailing slash
-	unless rawPath is '/'
-		unless settings[<%= settings.trailingSlash %>]
-			rawPath = rawPath.slice 0, -1 if rawPath.endsWith '/'
+	try
+		settings = @s
+		# Sub path
+		# Trailing slash
+		rawPath = ctx.params['*']
+		if rawPath
+			rawPath = '/' + rawPath
+			unless settings[<%= settings.trailingSlash %>]
+				rawPath = rawPath.slice 0, -1 if rawPath.endsWith '/'
+		else
+			rawPath = '/'
 
-	# Create context
-	req = ctx.req
-	ctx2 = new @Context ctx.socket
-	req2 = new @Request req.socket
+		# Create context
+		req = ctx.req
+		ctx2 = _create @SubAppContext, # new @Context ctx.socket
+			parentCtx: value: ctx
+			# url
+			method: value: ctx.method
+			url: value: ctx.value
+			path: # changeable by third middleware (like i18n or URL rewriter)
+				value: rawPath
+				writable: on
+				configurable: on
+			# params
+			params: value: _create null
+			query:
+				value: ctx.rawQuery
+				configurable: on 
+			# underlying send response
+			_end: value: ctx._end.bind ctx
+			_write: value: ctx._write.bind ctx
 
-	# basic ctx attributes
-	_defineProperties ctx2,
-		req: value: req2
-		res: value: ctx2
-		# url
-		method: value: req.method
-		url:value: ctx.url
-		path: # changeable by third middleware (like i18n or URL rewriter)
-			value: rawPath
-			writable: on
-			configurable: on
-		# params
-		params: value: _create null
-		rawQuery: value: ctx.rawQuery
-		query:
-			value: ctx.rawQuery
-			configurable: on
-		# underlying send response
-		_end: value: (data, cb)-> ctx._end data, cb
-		_write: value: (chunk, encoding, cb)-> ctx._write chunk, encoding, cb
-	# add to request
-	_defineProperties req2,
-		res: value: ctx2
-		ctx: value: ctx2
-		req: value: req2
-		headers: value: req.headers
+		req2 = _create @Request.prototype, # new @Request req.socket
+			parentReq: value: req
+			ctx: value: ctx2
+			res: value: ctx2
+		# add to request
+		_defineProperties req2,
+			req: value: req2
 
-	# wrap context
-	# ctx2 = _create ctx,
-		console.log '-- headers: ', req.headers
-		console.log '============================='
-		console.log '-- headers2: ', req2.headers
-	# locals
-	# locals = _create @locals,
-	# 	ctx: value: ctx2
-	# _defineProperties ctx2,
-	# 	locals: value: locals
-	# 	data: value: locals
-	# call context handling
-	return _handleRequest2 this, ctx2
+		# basic ctx attributes
+		_defineProperties ctx2,
+			req: value: req2
+			res: value: ctx2
+		# call context handling
+		return await _handleRequest2 this, ctx2
+	catch err
+		throw new GError 500, "Error in Sub app: #{@name}", err
+	
 			
 
 	

@@ -14,6 +14,8 @@ PKG			= require '../../package.json'
 CONTEXT_PROTO= require '../context'
 REQUEST_PROTO= require '../context/request'
 GError		= require '../lib/error'
+# Context wrapper for sub apps
+SUB_APP_WRAPPER = require '../context/sub-app-wrapper'
 
 # cache
 LoggerFactory = require 'gridfw-logger'
@@ -180,6 +182,8 @@ _defineProperties GridFW.prototype,
 	version: value: PKG.version
 	# Errors
 	errors: get: -> @s[<%=settings.errors %>]
+	# GERROR
+	Error: value: GError
 
 # consts
 _defineProperties GridFW,

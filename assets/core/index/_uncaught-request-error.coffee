@@ -13,9 +13,19 @@ _uncaughtRequestErrorHandler = (err, ctx, app)->
 			errCode = 520
 	else 
 		errCode = err
-	# Get handler
-	errorMap = app.s[<%= settings.errors %>]
-	errorHandler= errorMap[errCode] || errorMap.else
+	# Get error handler
+	loop
+		errorMap = ctx.app.s[<%= settings.errors %>]
+		errorHandler= errorMap[errCode]
+		break if errorHandler
+		err = new GError errCode, "Error in sub app: #{ctx.app.name}", err
+		ctx2 = ctx.parentCtx
+		if ctx2
+			ctx = ctx2
+		else
+			errorHandler= errorMap.else
+			break
+	# exec error handler
 	v = await errorHandler ctx, errCode, err
 	# post process
 	await _handleRequestPostProcess ctx, v unless ctx.finished
