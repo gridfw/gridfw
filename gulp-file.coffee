@@ -37,7 +37,17 @@ compileCoffee = ->
 
 	# if is prod
 	if settings.isProd
-		glp = glp.pipe uglify()
+		glp = glp.pipe uglify
+			module: on
+			compress:
+				toplevel: true
+				module: true
+				keep_infinity: on # chrome performance issue
+				warnings: on
+				# drop_console: on
+				# drop_debugger: on
+			# mangle:
+			# sourceMap:
 	# save 
 	glp.pipe gulp.dest 'build'
 		.on 'error', GfwCompiler.logError

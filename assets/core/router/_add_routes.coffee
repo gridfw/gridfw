@@ -79,6 +79,10 @@ _defineProperties GridFW.prototype,
 		# 		if method
 		#TODO
 
+	# when called before plugin render added, wait for app to load
+	loadStaticViews: value: (route, path)->
+		throw new Error 'Render lib missing' if @[IS_LOADED]
+		@[APP_STARTING_PROMISE].then => @loadStaticViews route, path
 
 ###*
  * Create route node or add handlers to other routes
@@ -169,12 +173,25 @@ _createRouteNode = (app, method, route, handler)->
 ###
 HTTP_SUPPORTED_METHODS.forEach (method)->
 	method = method.toLowerCase()
-	_defineProperty GridFW.prototype, method,
-		value: (route, handler)->
-			switch arguments.length
-				when 2
-					@on method, route, handler
-				when 1
-					@on method, route
-				else
-					throw new Error 'Illegal arguments'
+	unless method is 'get'
+		_defineProperty GridFW.prototype, method,
+			value: (route, handler)-> @on method, ...arguments
+
+# GET method
+_defineProperty GridFW.prototype, 'get', value: (route, handler)->
+	switch arguments.length
+		when 2
+			# apply controller
+			if typeof handler is 'function'
+				@on 'GET', route, handler
+			# load static view or views
+			else if typeof handler is 'string'
+				@loadStaticViews route, handler # returns promise
+				this
+			# else
+			else
+				throw new Error 'Unsupported GET arguments'
+		when 1
+			@on 'GET', route
+		else
+			throw new Error 'Illegal GET arguments'
