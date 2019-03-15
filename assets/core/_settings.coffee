@@ -3,9 +3,9 @@
 ###
 _settingsInit = <%= initSettings %>
 	####<========================== App Id =============================>####
-	mode:
-		default: 'dev'
-		check: (value)-> throw 'Expected "dev" or "prod"' unless value in ['dev', 'prod']
+	isProd:
+		default: no
+		check: (value)-> throw 'Expected boolean' unless typeof value is 'boolean'
 	name:
 		default: 'Gridfw-app'
 		check: (value)-> throw 'Expected string' unless typeof value is 'string'

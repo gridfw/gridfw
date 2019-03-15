@@ -24,7 +24,7 @@ _console_info = (app)->
 	app.info 'CORE', '╒═════════════════════════════════════════════════════════════╕'
 	app.info 'CORE', "\tREADY"
 	# if dev mode or procution
-	if app.isProdMode
+	if app.isProd
 		app.info 'CORE', "\t√ Production Mode"
 	else
 		app.warn 'CORE', "\tDeveloppement Mode."

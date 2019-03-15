@@ -79,12 +79,10 @@ _reloadApp = (app, options)->
 	options= await _reloadSettings app, options
 	# Set info settings
 	_defineReconfigurableProperties app,
-		mode: appSettings[<%= settings.mode %>]
+		isProd: appSettings[<%= isProd %>]
 		name: appSettings[<%= settings.name %>]
 		author: appSettings[<%= settings.author %>]
 		email: appSettings[<%= settings.email %>]
-		isDevMode: appSettings[<%= settings.mode %>] is 'dev'
-		isProdMode: appSettings[<%= settings.mode %>] is 'prod'
 	# reload cache
 	app.CACHE.clear().reload
 		maxSize: appSettings[<%= settings.jsCacheMaxSize %>]

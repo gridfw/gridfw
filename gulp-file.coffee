@@ -7,13 +7,12 @@ uglify			= require('gulp-uglify-es').default
 rename			= require "gulp-rename"
 coffeescript	= require 'gulp-coffeescript'
 
-GfwCompiler		= require 'gridfw-compiler'
-
 # settings
 isProd= gutil.env.hasOwnProperty('prod')
-settings = 
-	mode: if isProd then 'prod' else 'dev'
+settings =
 	isProd: isProd
+
+GfwCompiler		= require if isProd then 'gridfw-compiler' else '../compiler'
 
 # compile final values (consts to be remplaced at compile time)
 # compileConfig= -> # gulp mast be reloaded each time this file is changed!
@@ -36,7 +35,7 @@ compileCoffee = ->
 		.pipe coffeescript(bare: true).on 'error', GfwCompiler.logError
 
 	# if is prod
-	if settings.isProd
+	if isProd
 		glp = glp.pipe uglify
 			module: on
 			compress:

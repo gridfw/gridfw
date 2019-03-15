@@ -85,7 +85,7 @@ HTTP_SUPPORTED_METHODS= [
 class GridFW
 	###*
 	 * 
-	 * @param  {string} options.mode - execution mode: dev or prod
+	 * @param  {string} options.isProd - execution mode
 	 * @param  {number} options.routeCache - Route cache size
 	 * @param  {[type]} options [description]
 	 * @return {[type]}         [description]
@@ -197,9 +197,9 @@ _defineProperties GridFW.prototype,
 	logLevel:
 		get: -> @s[<%= settings.logLevel %>]
 		set: (level)->
-			consoleMode = @mode
-			LoggerFactory this, level: level, mode: consoleMode
-			LoggerFactory @Context.prototype, level: level, mode: consoleMode
+			consoleMode = @isProd
+			LoggerFactory this, level: level
+			LoggerFactory @Context.prototype, level: level
 			@s[<%= settings.logLevel %>] = level
 			return
 LoggerFactory GridFW.prototype, level: 'debug'

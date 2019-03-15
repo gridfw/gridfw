@@ -23,8 +23,8 @@ GridFW::addProperties = (properties)->
 				descrptr = Object.getOwnPropertyDescriptor src, k
 				descrptr.writable = descrptr.enumerable = off
 				# if override
-				if k of target
-					descriptor2 = Object.getOwnPropertyDescriptor target, k
+				descriptor2 = Object.getOwnPropertyDescriptor target, k
+				if descriptor2
 					# continue if the same
 					if 'value' of descriptor2
 						continue if descriptor2.value is descrptr.value

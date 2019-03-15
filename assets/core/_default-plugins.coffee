@@ -8,17 +8,17 @@ _PLUGINS =
 		secret: 'gw'
 	# render
 	render:
-		require: '../../../render'
+		require: 'gridfw-render'
 		views: 'views'
 	# downloader
 	downloader:
-		require: '../../../downloader'
+		require: 'gridfw-downloader'
 		etag: true # add etag http header
 		pretty: true # show json and xml in pretty format
 		jsonp: (ctx)-> ctx.query.cb or 'callback' # jsonp callback name
 	# uploader
 	uploader:
-		require: '../../../uploader'
+		require: 'gridfw-uploader'
 		timeout: 10 * 60 * 1000 # Upload timeout
 		tmpDir: require('os').tmpdir() # where to store tmp files, default to os.tmp
 		limits: # Upload limits

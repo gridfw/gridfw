@@ -18,9 +18,9 @@ _uncaughtRequestErrorHandler = (err, ctx, app)->
 		errorMap = ctx.app.s[<%= settings.errors %>]
 		errorHandler= errorMap[errCode]
 		break if errorHandler
-		err = new GError errCode, "Error in sub app: #{ctx.app.name}", err
 		ctx2 = ctx.parentCtx
 		if ctx2
+			err = new GError errCode, "Error @subApp: #{ctx.app.name}", err
 			ctx = ctx2
 		else
 			errorHandler= errorMap.else
