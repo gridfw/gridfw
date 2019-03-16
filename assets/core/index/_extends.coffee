@@ -8,8 +8,13 @@
  * 			// request properties
  * 		// other app properties
 ###
-GridFW::addProperties = (properties)->
-	throw new Error 'Expected one argument' unless arguments.length is 1
+GridFW::addProperties = (pluginName, properties)->
+	if arguments.length is 1
+		@warn 'AddProperties', 'Expected plugin name for debug purpose'
+		[pluginName, properties]= ['', pluginName]
+	else unless arguments.length is 2
+		throw new Error 'Expected two arguments'
+
 	throw new Error 'Expected object' unless (typeof properties is 'object') and properties
 	# add properties
 	for p in ['App', 'Context', 'Request']
@@ -18,28 +23,29 @@ GridFW::addProperties = (properties)->
 			target= if p is 'App' then this else @[p].prototype
 			throw new Error "#{p} expected object" unless (typeof src is 'object') and src
 			# add properties
-			for k,v of src
-				# descriptor
-				descrptr = Object.getOwnPropertyDescriptor src, k
-				descrptr.writable = descrptr.enumerable = off
+			descrptr= Object.getOwnPropertyDescriptors src
+			for k,v of descrptr
+				v.enumerable = off
+				v.configurable= on
+				v.writable = off if v.hasOwnProperty 'writable'
 				# if override
 				descriptor2 = Object.getOwnPropertyDescriptor target, k
 				if descriptor2
 					# continue if the same
 					if 'value' of descriptor2
-						continue if descriptor2.value is descrptr.value
+						continue if descriptor2.value is v.value
 					else
-						continue if (descriptor2.get is descrptr.get) and (descriptor2.set is descrptr.set)
+						continue if (descriptor2.get is v.get) and (descriptor2.set is v.set)
 					# add property
 					if descriptor2.configurable
-						@warn 'CORE', "Override property #{p}.#{k}"
+						@warn 'CORE', "Override property of #{p}: #{pluginName}::#{k}"
 					else
-						@error 'CORE', "Could not override property #{p}.#{k}"
+						@error 'CORE', "Could not override property of #{p}: #{pluginName}::#{k}"
 						continue
 				else
-					@debug 'CORE', "Add property #{p}.#{k}"	
+					@debug 'CORE', "Add property to #{p}: #{pluginName}::#{k}"	
 				# Add property
-				_defineProperty target, k, descrptr
+				_defineProperty target, k, v
 	return
 ###*
  * remove app methods and attributes
@@ -51,8 +57,13 @@ GridFW::addProperties = (properties)->
  * 			// request properties
  * 		// other app properties
 ###
-GridFW::removeProperties = (properties)->
-	throw new Error 'Expected one argument' unless arguments.length is 1
+GridFW::removeProperties = (pluginName, properties)->
+	if arguments.length is 1
+		@warn 'AddProperties', 'Expected plugin name for debug purpose'
+		[pluginName, properties]= ['', pluginName]
+	else unless arguments.length is 2
+		throw new Error 'Expected two arguments'
+
 	throw new Error 'Expected object' unless (typeof properties is 'object') and properties
 	# add properties
 	for p in ['App', 'Context', 'Request']
@@ -64,6 +75,6 @@ GridFW::removeProperties = (properties)->
 			for k,v of src
 				if v is target[k]
 					delete target[k]
-					@debug 'CORE', "Remove property #{p}.#{k}"
+					@debug 'CORE', "Remove property from #{p}: #{pluginName}::#{k}"
 	return
 

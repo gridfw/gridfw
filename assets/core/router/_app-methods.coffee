@@ -2,6 +2,9 @@
 _defineProperties GridFW.prototype,
 	###*
 	* add param
+	* @param {String} options.name - param name
+	* @param {Regex or function} options.matches - check value
+	* @param {function or asyc function} options.resolver - resolve value
 	* @see doc::param
 	###
 	param: value: (options)->

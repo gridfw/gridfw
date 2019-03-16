@@ -2,7 +2,6 @@
 ###*
  * Route builder
  * app.on('GET', 'path')
- * 		.param 'paramName', /regex/, resolver(value, ctx)
  * 		.then handler(ctx)
  * 		.then handler(ctx)
  * 		.catch errHandler(ctx)

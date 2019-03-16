@@ -162,10 +162,10 @@ _CreateReloadPlugin = (app, plugname, settings)->
 			if plugin.constructor is pluginConstructor
 				return plugin.reload settings
 			else
-				app.warn 'PLGN', "Overrided plugin: #{plugname}"
+				app.warn 'PLGN', "-- Overrided plugin: #{plugname}"
 				await plugin.destroy()
 		else
-			app.debug 'PLGN', "Starting plugin: #{plugname}"
+			app.debug 'PLGN', "-- Starting plugin: #{plugname}"
 		# create new plugin instance
 		plugin= plugs[lowerCasePlugName]= new pluginConstructor app
 		app.warn 'PLGN', "Plugin registed with different name [#{plugname}] instead of [#{pluginConstructor.name}]" unless pluginConstructor.name.toLowerCase() is lowerCasePlugName

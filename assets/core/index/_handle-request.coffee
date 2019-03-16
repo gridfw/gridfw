@@ -94,7 +94,7 @@ _handleRequest2 = (app, ctx)->
 	# execute handler wrappers
 	if (wrappers = app.w) and wrappers.length
 		nextIndex = 0
-		next = =>
+		next = ->
 			wrapper = wrappers[nextIndex++]
 			if wrapper
 				return wrapper ctx, next
