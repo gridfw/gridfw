@@ -36,7 +36,7 @@ CONTEXT_PROTO=
 	###*
 	 * Redirect back (go back to referer)
 	###
-	redirectBack: -> @redirect @req.getHeader('Referrer') || @s[<%= settings.baseURL %>]
+	redirectBack: -> @redirect @req.getHeader('Referrer') || @baseURL
 
 	### content type ###
 	type: (type)->

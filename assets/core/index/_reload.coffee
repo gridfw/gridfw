@@ -83,6 +83,12 @@ _reloadApp = (app, options)->
 		name: appSettings[<%= settings.name %>]
 		author: appSettings[<%= settings.author %>]
 		email: appSettings[<%= settings.email %>]
+		baseURL: appSettings[<%= settings.baseURL %>]
+	# locals
+	_defineReconfigurableProperties app.locals,
+		isProd: appSettings[<%= isProd %>]
+		baseURL: appSettings[<%= settings.baseURL %>]
+
 	# reload cache
 	app.CACHE.clear().reload
 		maxSize: appSettings[<%= settings.jsCacheMaxSize %>]

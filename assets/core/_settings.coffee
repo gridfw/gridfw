@@ -42,9 +42,8 @@ _settingsInit = <%= initSettings %>
 		check: (value)->
 			return null unless value
 			throw 'Expected string' unless typeof value is 'string'
-			url = new URL value
-			url = url.origin + url.pathname.match(/.+\//)[0]
-			throw "Expected intead: #{url}" unless url is value
+			url = (new URL '.', value).href
+			throw "Incorrect baseURL. did you mean [#{url}] instead of: [#{value}] ?" unless url is value
 			return url
 	###*
 	 * Trust proxy level
