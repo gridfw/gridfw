@@ -17,7 +17,7 @@ _routeCacheStart = do ->
 		currentInterval = currentCeil = null
 		_init = ->
 			currentInterval = intervals[level]
-			throw new Error 'Illegal interval' unless currentInterval
+			throw new Error "Illegal interval level: #{level}" unless currentInterval
 			currentCeil = accessCeil[level]
 			app.debug 'ROUTE-CACHE', "Set cache cleaner params to level: #{level}, interval: #{currentInterval}s, ceil: #{currentCeil}"
 			# convert to ms
@@ -27,30 +27,34 @@ _routeCacheStart = do ->
 		clearInterval app[ROUTE_CACHE_INTERVAL] if app[ROUTE_CACHE_INTERVAL]
 		# clean cache
 		_clean = ->
-			app.debug 'ROUTE-CACHE', 'Clean cache'
-			# make removes
-			cache = app[CACHED_ROUTES]
-			keys = Object.keys cache
-			# starting cleaning cache when exceeds min_count
-			if keys.length > min_count
-				for k, v of cache
-					if (v[0] -= currentCeil) <= 0
-						delete cache[k]
-			# check route counts
-			c = Object.keys(cache)
-			if c > stepMax
-				l = maxLevel
-			else
-				for step, i in countSteps
-					if c < step
-						l = i
-						break
-			unless level is l
-				level = l
-				do _init
-				clearInterval app[ROUTE_CACHE_INTERVAL]
-				app[ROUTE_CACHE_INTERVAL] = setInterval _clean, currentInterval
-
+			try
+				# make removes
+				cache = app[CACHED_ROUTES]
+				keys = Object.keys cache
+				keysLen= keys.length
+				app.debug 'ROUTE-CACHE', "Clean cache: [ keys len: #{keysLen} ]"
+				# starting cleaning cache when exceeds min_count
+				if keysLen > min_count
+					for k, v of cache
+						if (v[0] -= currentCeil) <= 0
+							delete cache[k]
+					keys= Object.keys cache
+					keysLen= keys.length
+				# check route counts
+				if keysLen > stepMax
+					l = maxLevel
+				else
+					for step, i in countSteps
+						if keysLen < step
+							l = i
+							break
+				unless level is l
+					level = l
+					do _init
+					clearInterval app[ROUTE_CACHE_INTERVAL]
+					app[ROUTE_CACHE_INTERVAL] = setInterval _clean, currentInterval
+			catch err
+				app.fatalError 'Route-cache', err
 		# interval
 		app[ROUTE_CACHE_INTERVAL] = setInterval _clean, currentInterval
 		return
