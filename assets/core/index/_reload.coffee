@@ -64,8 +64,12 @@ _defineProperties GridFW.prototype,
 			reloadPromise = reloadPromise
 				.then =>
 					@[IS_LOADED] = true
+					# adjust routes
+					@_rebuildRoutes()
+					return
 				.finally =>
 					@[APP_STARTING_PROMISE] = null
+					return
 			# save promise for next call
 			@[APP_STARTING_PROMISE] = reloadPromise
 		# return promise

@@ -84,6 +84,12 @@ _defineProperties GridFW.prototype,
 		throw new Error 'Render lib missing' if @[IS_LOADED]
 		@[APP_STARTING_PROMISE].then => @loadStaticViews route, path
 
+	# re-adjust all routes
+	_rebuildRoutes: value: ->
+		_AdjustRouteMappers @['/']
+		return
+
+
 ###*
  * Create route node or add handlers to other routes
  * @optional @param {object} descrp - other optional params

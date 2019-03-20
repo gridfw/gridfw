@@ -74,7 +74,7 @@ _defineProperties GridFW.prototype,
 		mapper = _createRouteTree this, route
 		_wrapAt (mapper.E ?= []), index, handler
 		# propagate middleware to subroutes
-		_AdjustRouteMappers mapper
+		_AdjustRouteMappers mapper if @[IS_LOADED]
 		# chain
 		this
 	###*
@@ -120,7 +120,7 @@ _defineProperties GridFW.prototype,
 			# check handler
 			mapper = _createRouteTree this, route
 			_wrapAt (mapper.W ?= []), index, handler
-			_AdjustRouteMappers mapper
+			_AdjustRouteMappers mapper if @[IS_LOADED]
 			# clear route cache
 			do @_clearRCache
 		# wrap handler
@@ -136,7 +136,7 @@ _defineProperties GridFW.prototype,
 				mapper = _createRouteTree this, route, no
 				if mapper
 					_arrayRemove mapper.W, handler if mapper.W
-					_AdjustRouteMappers mapper
+					_AdjustRouteMappers mapper if @[IS_LOADED]
 					# clear route cache
 					do @_clearRCache
 			# remove wrapper from request handler
