@@ -48,6 +48,7 @@ _defineProperties GridFW.prototype,
 	 * @async
 	 * @optional @param  {object} options - new options
 	###
+	starting: value: -> @[APP_STARTING_PROMISE] or Promise.resolve()
 	reload: value: (options)->
 		reloadPromise = @[APP_STARTING_PROMISE]
 		reloadPrevOptions = @[APP_OPTIONS]
@@ -88,6 +89,8 @@ _reloadApp = (app, options)->
 		author: appSettings[<%= settings.author %>]
 		email: appSettings[<%= settings.email %>]
 		baseURL: appSettings[<%= settings.baseURL %>]
+		# user custom settings
+		settings: appSettings[<%= settings.settings %>]
 	# locals
 	_defineReconfigurableProperties app.locals,
 		isProd: appSettings[<%= isProd %>]

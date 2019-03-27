@@ -36,8 +36,11 @@ CONTEXT_PROTO=
 	###*
 	 * Redirect back (go back to referer)
 	###
-	redirectBack: -> @redirect @req.getHeader('Referrer') || @baseURL
-
+	redirectBack: ->
+		baseUrl= @app.baseURL
+		unless (url= @req.headers.referer) and url.startsWith(baseUrl) and not url.endsWith(@url)
+			url= baseUrl
+		@redirect url
 	### content type ###
 	type: (type)->
 		throw new Error 'type expected string' unless typeof type is 'string'

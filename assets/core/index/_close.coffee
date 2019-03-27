@@ -12,6 +12,7 @@ _defineProperties GridFW.prototype,
 		new Promise (resolve, reject)=>
 			server = @server
 			if server
+				@info 'core', "Stopping listening at: #{@protocol}://#{@host}:#{@port}#{@path}"
 				server.close (err)->
 					if err
 						reject err

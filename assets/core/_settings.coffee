@@ -15,6 +15,10 @@ _settingsInit = <%= initSettings %>
 	email:
 		default: '-'
 		check: (value)-> throw 'Expected string' unless typeof value is 'string'
+	# user custom settings
+	settings:
+		default: -> {}
+		check: (value)-> throw 'Expected plain object' unless typeof value is 'object' and not Array.isArray value
 	###*
 	 * Enable/disable default plugins if not overrided
 	###

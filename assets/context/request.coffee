@@ -4,6 +4,7 @@ http = require 'http'
 ContentTypeParse = require('content-type').parse
 proxyaddr  = require 'proxy-addr'
 fresh		= require 'fresh'
+Accepts		= require 'accepts'
 
 {gettersOnce} = require '../lib/define-getter-once'
 
@@ -23,7 +24,7 @@ module.exports = REQUEST_PROTO
 
 gettersOnce REQUEST_PROTO,
 	### accept ###
-	_accepts: -> accepts this
+	_accepts: -> Accepts this
 	### protocol ###
 	protocol: ->
 		#Check for HTTP2
@@ -111,19 +112,11 @@ gettersOnce REQUEST_PROTO,
 ### commons with Context ###
 props=
 	### request: return first accepted type based on accept header ###
-	accepts: value: ->
-		acc = @_accepts
-		acc.encodings.apply acc, arguments
+	accepts: value: (lst)-> @_accepts.encodings lst
 	### Request: Check if the given `encoding`s are accepted.###
-	acceptsEncodings: value: ->
-		acc = @_accepts
-		acc.types.apply acc, arguments
+	acceptsEncodings: value: (lst)-> @_accepts.types lst
 	### Check if the given `charset`s are acceptable ###
-	acceptsCharsets: value: ->
-		acc = @_accepts
-		acc.charsets.apply acc, arguments
+	acceptsCharsets: value: (lst)-> @_accepts.charsets lst
 	### Check if the given `lang`s are acceptable, ###
-	acceptsLanguages: value: ->
-		acc = @_accepts
-		acc.languages.apply acc, arguments
+	acceptsLanguages: value: (lgList)-> @_accepts.languages lgList
 _defineProperties REQUEST_PROTO, props

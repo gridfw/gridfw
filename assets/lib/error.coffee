@@ -35,7 +35,7 @@ class GError extends Error
 			else if extra instanceof Error
 				extra = extra.stack
 			else if typeof extra is 'object'
-				extra = JSON.pretty extra
+				extra = JSON.stringify extra, null, "\t"
 			err = err.concat "Caused by:\n", extra
 		err
 module.exports = GError
