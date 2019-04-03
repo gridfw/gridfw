@@ -112,9 +112,9 @@ gettersOnce REQUEST_PROTO,
 ### commons with Context ###
 props=
 	### request: return first accepted type based on accept header ###
-	accepts: value: (lst)-> @_accepts.encodings lst
+	accepts: value: (lst)-> @_accepts.types lst
 	### Request: Check if the given `encoding`s are accepted.###
-	acceptsEncodings: value: (lst)-> @_accepts.types lst
+	acceptsEncodings: value: (lst)-> @_accepts.encodings lst
 	### Check if the given `charset`s are acceptable ###
 	acceptsCharsets: value: (lst)-> @_accepts.charsets lst
 	### Check if the given `lang`s are acceptable, ###
