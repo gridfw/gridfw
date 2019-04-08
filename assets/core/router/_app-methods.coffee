@@ -163,4 +163,7 @@ _adjustRoute= (route)->
 		route = '/'
 	else if route.endsWith '/*'
 		route = route.slice 0, -2
+	# fix params
+	route = route.replace /\/([:*?])/g, (_, k)->
+		if k is '?' then '/' else '/?' + k
 	return route
