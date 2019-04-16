@@ -36,7 +36,6 @@ _routeCacheStart = do ->
 				# starting cleaning cache when exceeds min_count
 				if keysLen > min_count
 					for k, v of cache
-						console.log '----------- cache>> for cache'
 						if (v[0] -= currentCeil) <= 0
 							delete cache[k]
 					keys= Object.keys cache
@@ -46,13 +45,11 @@ _routeCacheStart = do ->
 					l = maxLevel
 				else
 					for step, i in countSteps
-						console.log '----------- cache>> for count step'
 						if keysLen < step
 							l = i
 							break
 				unless level is l
 					level = l
-					console.log '----------- cache>> do init'
 					do _init
 					clearInterval app[ROUTE_CACHE_INTERVAL]
 					app[ROUTE_CACHE_INTERVAL] = setInterval _clean, currentInterval
