@@ -11,8 +11,13 @@ _uncaughtRequestErrorHandler = (err, ctx, app)->
 		else
 			err = 'Unknown Error!'
 			errCode = 520
-	else 
+	else if typeof err is 'number'
 		errCode = err
+	else
+		errCode= 500
+	# check err code
+	unless 400 <= errCode < 600
+		errCode= 500
 	# Get error handler
 	loop
 		errorMap = ctx.app.s[<%= settings.errors %>]
