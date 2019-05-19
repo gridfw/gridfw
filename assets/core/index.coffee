@@ -19,8 +19,7 @@ SUB_APP_WRAPPER = require '../context/sub-app-wrapper'
 
 # cache
 LoggerFactory = require 'gridfw-logger'
-Cache = require '../../../cache'
-# Cache = require 'gridfw-cache'
+Cache = require <%= isProd? '"gridfw-cache"' : '"../../../cache"' %>
 ByteParser = require 'bytes'
 
 #=include ../commons/_index.coffee
