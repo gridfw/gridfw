@@ -84,7 +84,7 @@ _reloadApp = (app, options)->
 	options= await _reloadSettings app, options
 	# Set info settings
 	_defineReconfigurableProperties app,
-		isProd: appSettings[<%= isProd %>]
+		isProd: appSettings[<%= settings.isProd %>]
 		name: appSettings[<%= settings.name %>]
 		author: appSettings[<%= settings.author %>]
 		email: appSettings[<%= settings.email %>]
@@ -93,7 +93,7 @@ _reloadApp = (app, options)->
 		settings: appSettings[<%= settings.settings %>]
 	# locals
 	_defineReconfigurableProperties app.locals,
-		isProd: appSettings[<%= isProd %>]
+		isProd: appSettings[<%= settings.isProd %>]
 		baseURL: appSettings[<%= settings.baseURL %>]
 
 	# reload cache

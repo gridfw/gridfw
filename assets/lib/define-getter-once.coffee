@@ -25,6 +25,10 @@ module.exports =
 
 _getterProxy = (k, v)->
 	get: ->
-		value = v.call this
-		_defineProperty this, k, value: value
+		try
+			value = v.call this
+			_defineProperty this, k, value: value
+		catch err
+			@fatalError? 'getterOnce', err
 		value
+		
