@@ -94,7 +94,7 @@ gettersOnce CONTEXT_PROTO,
 	###*
 	 * Used method
 	###
-	method: -> @req.method
+	method: -> @req?.method
 
 	### protocol ###
 	protocol: -> @req.protocol
