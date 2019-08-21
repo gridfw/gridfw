@@ -91,7 +91,7 @@ _settingsInit = <%= initSettings %>
 	 * 		- 20M for production
 	###
 	jsCacheMaxSize:
-		default: 20 * 2**10 # 20M
+		default: 10 * 2**20 # 20M
 		check: (value)->
 			if typeof value is 'string'
 				value = ByteParser.parse value
