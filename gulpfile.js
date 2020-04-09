@@ -2,30 +2,50 @@ const gulp = require('gulp');
 const gutil = require('gulp-util');
 const include = require("gulp-include");
 const coffeescript = require('gulp-coffeescript');
-const chug = require('gulp-chug');
+const PluginError = gulp.PluginError;
+const Through2= require('through2');
+const {exec}= require('child_process');
+const GulpErrHandler	= require('gulp-error-handle');
+const Ejs				= require("gulp-ejs")
+// const chug = require('gulp-chug');
 
 // get arguments with '--'
-var args = []
-for(var i=0, argv= process.argv, len = argv.length; i < len; ++i)
-	if(argv[i].startsWith('--'))
-		args.push(argv[i])
-	
+args = [];
+for(var i=0, argv= process.argv, len = argv.length; i < len; ++i){
+	if(argv[i].startsWith('--'));
+		args.push(argv[i]);
+}
+
+
+// is Prod: 
+var isProd= false;
+for(var i=0, len=args.length; i<len; i++){
+	if(args[i] === '--prod'){
+		isProd= true;
+		break;
+	}
+}
+
+// run gulp
+function runGulp(){
+	console.info('>> Exec compiled Gulpfile:');
+	var ps= exec('gulp --gulpfile=gulp-file.js');
+	ps.stdout.on('data', function(data){console.log(data.trim())});
+	ps.stderr.on('data', function(data){console.error('ERROR>> ', data.trim())});
+	ps.on('error', function(err){ console.error('ERR>> ', err); });
+	ps.on('close', function(){ console.log('>> Closed.') });
+	return ps
+}
+
 /* compile gulp-file.coffee */
-var exitCode = 0
 compileRunGulp= function(){
-	return gulp.src('gulp-file.coffee')
+	return gulp.src('gulpfile/gulp-file.coffee')
+		.pipe( GulpErrHandler() )
+		.pipe( include({hardFail: true}) )
+		.pipe( Ejs({isProd}) )
 		.pipe( coffeescript({bare: true}) )
-		.pipe( chug({args: args}) )
-		.on('error', function(err){
-			console.error('\x1b[41mERROR At ', err.plugin, '>>', err.message, '\x1b[0m');
-			exitCode = 1
-		});
+		.pipe( gulp.dest('./') )
 };
 
-process.on('exit', function(code){
-	if(exitCode) // when error
-		process.exit(exitCode);
-});
-
 // default task
-gulp.task('default', compileRunGulp);
+gulp.task('default', gulp.series(compileRunGulp, runGulp));
