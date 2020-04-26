@@ -46,7 +46,9 @@ module.exports= class Context extends http.ServerResponse
 		@app= null #current app
 		@settings= null # current app settings
 		@req= null # point current request object
+		@request= null # alias of @req
 		@locals= @data= null # TODO add locals when serving request
+		# @timestamp= Date.now() # Current time
 		@result= null # result to send to user: view to render, object to stringify, ...
 		@contentLength= null # Content length
 		@contentType= null # content type

@@ -40,7 +40,8 @@ _resolveTreeNode= (app, path)->
 	settings= app.settings
 	path= path.trim()
 	# path= '/'+path unless path.startsWith('/')
-	path= path.toLowerCase() if settings.routerIgnoreCase
+	routerIgnoreCase= settings.routerIgnoreCase
+	# path= path.toLowerCase() if settings.routerIgnoreCase
 	# start
 	currentNode= app._routes
 	avoidTrailingSlash= not settings.trailingSlash
@@ -70,6 +71,7 @@ _resolveTreeNode= (app, path)->
 		# static node
 		else
 			part= part.slice(1) if part.startsWith('?') # escaped static part
+			part= part.toLowerCase() if routerIgnoreCase
 			node= currentNode.static[part] ?= do _createRouteNode
 			node.type= ROUTER_STATIC_NODE
 		# Check params not repeated
@@ -96,6 +98,7 @@ _resolveRouteNodes= (app, path)->
 	# path= '/'+path unless path.startsWith('/')
 	currentNode= app._routes
 	paramMap= app._params
+	routerIgnoreCase= app.settings.routerIgnoreCase
 	# parts= path.split /(?=\/)/
 	parts= path.split '/'
 	partsLen= parts.length
@@ -115,6 +118,7 @@ _resolveRouteNodes= (app, path)->
 		# static node
 		else
 			part= part.slice(1) if part.startsWith('?') # escaped static part
+			part= part.toLowerCase() if routerIgnoreCase
 			node= currentNode.static[part]
 		# finish
 		if node

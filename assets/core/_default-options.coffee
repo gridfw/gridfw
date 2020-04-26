@@ -24,13 +24,17 @@ OPTIONS_CHECK=
 	email:	_assertString
 	cookieSecret:	_assertString
 
-	###* Views ###
+	###***********
+	 * Views
+	###
 	views:	(path)-> Path.resolve path
 	viewCacheMax: _assertUIntOrInfinity
 	viewCacheTTL: _assertUIntOrInfinity
 	viewCacheMaxBytes: _assertUIntOrInfinity
 
-	###* HTTP ###
+	###***********
+	 * HTTP
+	###
 	protocol:	(value)->
 		throw 'Expected http, https or http2' unless value in ['http', 'https', 'http2']
 		return value
@@ -44,14 +48,24 @@ OPTIONS_CHECK=
 	# ip:			'0.0.0.0'
 	# ipType:		'ipv4'
 
-	###* LOG MANAGEMENT ###
+	###***********
+	 * LOG MANAGEMENT
+	###
 	logLevel: (value)->
 		levels = ['debug', 'log', 'info', 'warn', 'error', 'fatalError']
 		throw "Expected: #{levels.join ','}" unless value in levels
 		return value
 
+	###***********
+	 * PROXY
+	###
 	###* Trust proxy level ###
 	trustProxy: _assertFunction
+
+
+	###***********
+	 * ROUTER
+	###
 	###* trailing slashes ###
 	trailingSlash: _assertBoolean
 
@@ -59,13 +73,18 @@ OPTIONS_CHECK=
 	routerIgnoreCase:	_assertBoolean
 	routerCacheMax:		_assertUIntOrInfinity
 	routerCacheTTL:	_assertUIntOrInfinity
-	###* ERROR MANAGEMENT ###
+
+	###***********
+	 * ERROR MANAGEMENT
+	###
 	errors: (value)->
 		throw 'Expected object' unless typeof value is 'object' and value
 		throw '"Options.else" expected function' unless typeof value.else is 'function'
 		return value
 
-	###* Downloader ###
+	###***********
+	 * Downloader
+	###
 	defaultEncoding: _assertString
 	etag: (data)->		# add etag http header
 		if data is false
@@ -78,7 +97,9 @@ OPTIONS_CHECK=
 	pretty: _assertBoolean	# show html, json and xml in pretty format
 	jsonp: _assertFunction # jsonp callback name
 
-	###* APLOADER ###
+	###***********
+	 * APLOADER
+	###
 	upload_timeout: _assertUIntOrInfinity # Upload timeout
 	upload_dir: _assertString # where to store uploaded files, default to os.tmp
 	upload_parse: _assertBoolean # Do parse JSON and XML. save as file otherwise
@@ -94,3 +115,8 @@ OPTIONS_CHECK=
 	i18nCacheMax: _assertUIntOrInfinity
 	i18nCacheTTL: _assertUIntOrInfinity
 	i18nCacheMaxBytes: _assertUIntOrInfinity
+
+	###***********
+	 * SESSION
+	###
+	sessionCookie: _assertString

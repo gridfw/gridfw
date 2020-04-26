@@ -84,7 +84,9 @@ handle: do ->
 			# prepare context
 			ctx.app			= this
 			ctx.settings	= settings
+			req.settings	= settings
 			ctx.req			= req
+			ctx.request		= req
 			ctx.locals		= locals
 			ctx.data		= locals
 			# ctx.contentLength	=
