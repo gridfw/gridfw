@@ -40,13 +40,13 @@ Path = require('path');
 
 Fs = require('fs');
 
-isProd = true;
+isProd = false;
 
 settings = {
   /**
    * App params
    */
-  isProd: true,
+  isProd: false,
   // Info
   appName: 'GridFw',
   author: 'Coredigix.com',
@@ -206,14 +206,6 @@ _addTask('assets/**/*.coffee', function() {
   })).pipe(RmEmptyLines()).pipe(Ejs(settings)).pipe(GulpCoffeescript({
     bare: true
   // if is prod
-  })).pipe(uglify({
-    module: true,
-    compress: {
-      toplevel: true,
-      module: true,
-      keep_infinity: true,
-      warnings: true
-    }
   })).pipe(gulp.dest('build/'));
 });
 

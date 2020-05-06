@@ -129,7 +129,9 @@ upload: do ->
 		# Upload directory
 		uploadDir= options.dir or settings.upload_dir
 		# Result
+		resultData= {}
 		result=
+			data: resultData
 			removeTmpFiles: _formDataRemoveFiles
 			clear: _formDataRemoveFiles
 			_tmpFiles: []
@@ -164,7 +166,7 @@ upload: do ->
 					error: if fieldnameTruncated then 'fieldname truncated' else 'value truncated'
 				} if fieldnameTruncated or valTruncated
 				# add value
-				_addField result, fieldname, val
+				_addField resultData, fieldname, val
 			catch err
 				errorHandle err
 			return
@@ -203,7 +205,7 @@ upload: do ->
 					# pipe stream
 					file.pipe Fs.createWriteStream fPath
 				# create file descriptor
-				_addField result, fieldname,
+				_addField resultData, fieldname,
 					path:  fPath
 					name:  filename
 					encoding:  encoding

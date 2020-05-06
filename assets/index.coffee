@@ -15,6 +15,13 @@ URLQueryParser= require 'querystringparser'
 Chalk= require 'chalk'
 PrettyFormat = require 'pretty-format'
 
+ContentTypeParse= require('content-type').parse
+
+# COOKIE
+CryptoJS = require('crypto-js')
+AESCrypto = CryptoJS.AES
+CookieLib= require 'cookie'
+
 # DOWNLOADER
 ETag		= require 'etag'
 

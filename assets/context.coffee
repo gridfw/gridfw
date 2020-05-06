@@ -30,10 +30,6 @@ RawBody= require 'raw-body'
 Zlib = require 'zlib'
 Iconv= require 'iconv-lite'
 
-# COOKIE
-Cookie = require 'cookie'
-CryptoJS = require('crypto-js')
-AESCrypto = CryptoJS.AES
 
 # LOCAL LIBs
 GError= require './error'
@@ -53,6 +49,7 @@ module.exports= class Context extends http.ServerResponse
 		@contentLength= null # Content length
 		@contentType= null # content type
 		@encoding= null #TODO add app default encoding
+		@cookies= null # parsed cookies
 		# URL data
 		@route= null # current selected route
 		@method= null

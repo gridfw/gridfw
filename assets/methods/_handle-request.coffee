@@ -94,6 +94,32 @@ handle: do ->
 			ctx.locale		= @defaultLocale
 			ctx.encoding	= settings.defaultEncoding
 
+			# Parse Cookies
+			if cookieHeader = req.headers.cookie
+				secret= settings.cookieSecret
+				cookies= CookieLib.parse cookieHeader,
+					decode: (data)->
+						try
+							data= decodeURIComponent data
+							# decode cookie
+							if secret and data.startsWith 's'
+								data= AESCrypto.decrypt(data.substr(1), secret).toString(CryptoJS.enc.Utf8)
+							# parse json value
+							if data.startsWith 'j'
+								data= JSON.parse data.substr 1
+							else
+								data= data.substr 1
+						catch err
+							ctx.warn 'cookie-parser', err
+						return data
+			else cookies= {}
+			ctx.cookies= cookies
+			req.cookies= cookies
+
+			# Content type
+			if ctp= req.headers['content-type']
+				req.contentType= ContentTypeParse(ctp)
+
 			# PATH
 			ctx.method= req.method
 			ctx.url= url= req.url

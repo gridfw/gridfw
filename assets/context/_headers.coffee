@@ -24,4 +24,4 @@ acceptsCharsets: (lst)-> @_accepts.charsets lst
 acceptsLanguages: (lgList)-> @_accepts.languages lgList
 
 # Check if client supports webp images
-acceptsWebp: -> (accept=ctx.req.headers.accept) and ~accept.indexOf('image/webp') or no
+acceptsWebp: -> (accept= @req.headers.accept) and ~accept.indexOf('image/webp') or no
