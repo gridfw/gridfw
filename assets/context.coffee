@@ -23,6 +23,11 @@ OnFinishLib	= require 'on-finished'
 Buffer		= require('safe-buffer').Buffer
 XMLConverter= require 'xml-js'
 
+# COOKIE
+CryptoJS = require('crypto-js')
+AESCrypto = CryptoJS.AES
+CookieLib= require 'cookie'
+
 # UPLOAD
 ParseRange = require 'range-parser'
 Busboy = require 'busboy'

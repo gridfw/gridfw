@@ -20,7 +20,7 @@ setCookie: (name, value, options)->
 	# path
 	options.path ?= '/'
 	# set as header
-	@addHeader 'Set-Cookie', Cookie.serialize name, value, options
+	@addHeader 'Set-Cookie', CookieLib.serialize name, value, options
 	# chain
 	this
 

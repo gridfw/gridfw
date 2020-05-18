@@ -30,7 +30,7 @@ listen: (options)->
 		switch @protocol
 			when 'http'
 				server= http.createServer
-					IncomingMessage : Request
+					IncomingMessage : @Request
 					ServerResponse : Context
 			when 'https'
 				#TODO

@@ -29,7 +29,6 @@ ETag		= require 'etag'
 PKG=		require '../package.json'
 GError=		require './error'
 Context=	require './context'
-Request=	require './request'
 
 # CONSTS
 ROUTER_MAX_LOOP= 10000 # max loop when seeking inside Router tree
@@ -90,8 +89,14 @@ module.exports= class GridFw
 
 		# set config
 		options?= {}
-		@settings= GridFw._loadDefaultOptions(options.isProd)
+		settings= @settings= GridFw._loadDefaultOptions(options.isProd)
+
+		# REQUEST CLASS
+		#=include _request.coffee
+
+		# SET CONFIG
 		@setConfig options
+
 		return
 	# Router methods
 	#=include router/_index-methods.coffee

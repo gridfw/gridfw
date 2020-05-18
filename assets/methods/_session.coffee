@@ -8,7 +8,7 @@ startSession: (ctx)->
 	cookieName= settings.sessionCookie
 	cookie= request.cookies[cookieName]
 	# create/get session
-	session= ctx.app.getSessionDoc cookie, ctx
+	session= await @getSessionDoc cookie, ctx
 	ctx.session= session
 	# if renew session cookie
 	if session.renew

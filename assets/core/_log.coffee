@@ -19,7 +19,7 @@ _defineProperties GridFw.prototype,
 			@fatalError=if levelIndex <= 4 then settings.log_fatalError else LOG_IGNORE
 			# Context
 			contextProto= Context.prototype
-			requestProto= Request.prototype
+			requestProto= @Request.prototype
 			contextProto.debug=		requestProto.debug=			if levelIndex is 0 then settings.log_debug else LOG_IGNORE
 			contextProto.info=		requestProto.info=			if levelIndex <= 1 then settings.log_info else LOG_IGNORE
 			contextProto.warn=		requestProto.warn=			if levelIndex <= 2 then settings.log_warn else LOG_IGNORE

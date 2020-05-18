@@ -24,7 +24,11 @@ _arrRemove= (arr, element)->
 _getterProxy = (k, v)->
 	get: ->
 		value = v.call this
-		_defineProperty this, k, value: value
+		_defineProperty this, k,
+			configurable: true
+			enumerable: true
+			value: value
+			writable: true
 		return value
 _defineGettersOnce= (prototype, descrp)->
 	for k,v of descrp
