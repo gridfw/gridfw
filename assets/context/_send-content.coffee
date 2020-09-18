@@ -61,19 +61,20 @@ xml: (data)->
  * @param {String} options.name - override file name
  * @param {Object} options - npm send options @see https://www.npmjs.com/package/send
 ###
-sendFile: (path, options)->
+sendFile: (filePath, options)->
 	new Promise (resolve, reject)=>
-		throw new Error 'path expected string' unless typeof path is 'string'
-		path = EncodeUrl path
+		throw new Error 'file path expected string' unless typeof filePath is 'string'
 		# Options
 		if options
 			options.headers?= {}
+			fileName= options.name or Path.basename filePath
 		else
 			options= {headers:{}}
+			fileName= Path.basename filePath
 		# add file name and content disposition
-		options.headers['Content-Disposition'] ?= ContentDisposition options.name || path, type: if options.inline is false then 'attachment' else 'inline'
+		options.headers['Content-Disposition'] ?= ContentDisposition fileName, type: if options.inline is false then 'attachment' else 'inline'
 		# Prepare file streaming
-		file = SendFile @req, path, options
+		file = SendFile @req, (EncodeUrl filePath), options
 		# flags
 		streaming = off
 		# done = no
@@ -123,6 +124,16 @@ download: (path, options)->
 		options= {inline: no}
 	# send
 	return @sendFile path, options
+
+###* Send content as file ###
+sendFileBuffer: (buffer, options)->
+	options?= {}
+	@setHeader 'Content-Disposition', ContentDisposition (options.fileName or 'untitled'), type: if options.inline is false then 'attachment' else 'inline'
+	if options.maxAge
+		maxAge= options.maxAge
+		maxAge= ~~(MS(maxAge)/1000) if typeof maxAge is 'string'
+		@setHeader 'Cache-Control', "public, max-age: #{maxAge}"
+	@send buffer
 
 ###*
  * send data to the user
@@ -177,7 +188,7 @@ send: (data)->
 		unless @hasHeader 'ETag'
 			etag = settings.etag data
 			@setHeader 'ETag', etag if etag
-		
+
 		# freshness
 		@statusCode = 304 if req.fresh
 
@@ -198,6 +209,3 @@ send: (data)->
 		return @end()
 	else
 		return @end data, encoding
-
-
-

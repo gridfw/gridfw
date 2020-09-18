@@ -74,6 +74,7 @@ module.exports= class GridFw
 		# @_static= _create null # store static routes
 		@_routes= _createMainRouteNode() # Router tree
 		@_params= {} # Path params resolvers
+		@_staticParams= {}
 		@_handler= null # Handler used as wrapper with the HTTP server
 
 		# I18N

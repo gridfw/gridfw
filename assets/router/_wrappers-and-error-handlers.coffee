@@ -18,15 +18,7 @@ wrap: (route, wrapper)->
 				@_wrappers.push wrapper
 			# Route wrapper
 			when 2
-				# flatten routes
-				if _isArray route
-					for el in route
-						@wrap el, wrapper
-					return this # chain
-				# Add
-				throw 'Wrapper expected: async function(ctx, next){...}' unless typeof wrapper is 'function' and wrapper.length is 2
-				node= _resolveTreeNode this, route
-				(node.wrappers?= []).push wrapper
+				@_wrap route, wrapper, [@_routes]
 			# Illegal
 			else
 				throw 'Illegal arguments'
@@ -36,7 +28,15 @@ wrap: (route, wrapper)->
 	catch err
 		err= "CATCH>> #{err}" if typeof err is 'string'
 		throw err
-
+_wrap: (route, wrapper, currentNodes)->
+	# flatten routes
+	if _isArray route
+		@wrap el, wrapper, currentNodes for el in route
+		return this # chain
+	throw 'Wrapper expected: async function(ctx, next){...}' unless typeof wrapper is 'function' and wrapper.length is 2
+	nodes= _resolveTreeNode this, route, [@_routes]
+	(node.wrappers?= []).push wrapper for node in nodes
+	return
 ###*
  * Remove wrapper
 ###
@@ -48,12 +48,14 @@ unwrap: (route, wrapper)->
 				_arrRemove @_wrappers, route
 			# Remove all wrappers from a route node
 			else
-				result= _resolveRouteNodes this, route
-				result.node.wrappers= null if result.found
+				nodes= _resolveRouteNodes this, route, [@_routes]
+				for node in nodes
+					node.wrappers= null
 		when 2
-			result= _resolveRouteNodes this, route
-			if result.found and (wrappers= result.node.wrappers)
-				_arrRemove wrappers, wrapper
+			nodes= _resolveRouteNodes this, route, [@_routes]
+			for node in nodes
+				if wrappers= node.wrappers
+					_arrRemove wrappers, wrapper
 		else
 			throw new Error 'Illegal arguments'
 	# reload caches
@@ -81,12 +83,12 @@ catch: (route, handler)->
 				@catch el, handler
 			return this # chain
 		throw 'Handler expected: async function(ctx, error){...}' unless typeof handler is 'function' and handler.length is 2
-		node= _resolveTreeNode this, route
-		(node.onError?= []).push handler
+		nodes= _resolveTreeNode this, route, [@_routes]
+		for node in nodes
+			(node.onError?= []).push handler
 		# reload caches
 		@clearRouterCache()
 		this # chain
 	catch err
 		err= "CATCH>> #{err}" if typeof err is 'string'
 		throw err
-	

@@ -2,6 +2,7 @@
  * Create route node
 ###
 _createRouteNode= ->
+	parent: null
 	# id
 	route: null # String
 	path: null	# array of nodes

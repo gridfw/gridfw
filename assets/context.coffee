@@ -22,6 +22,7 @@ MimeType	= require 'mime-types'
 OnFinishLib	= require 'on-finished'
 Buffer		= require('safe-buffer').Buffer
 XMLConverter= require 'xml-js'
+MS			= require 'ms'
 
 # COOKIE
 CryptoJS = require('crypto-js')

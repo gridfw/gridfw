@@ -8,6 +8,7 @@ ROUTER_STATIC_NODE= 0
 ROUTER_PARAM_NODE= 1
 ROUTER_WILDCARD_PARAM_NODE= 2
 ROUTER_WILDCARD_NODE= 3
+ROUTER_STATIC_PARAM_NODE= 4
 
 ###*
  * Resolve or create node inside parametred table
@@ -15,10 +16,8 @@ ROUTER_WILDCARD_NODE= 3
  * @param {Array} arr - [paramName, regex, node, paramName, regex, node, ...]
  * @private
 ###
-_resolveNodeInArray= (part, paramMap, arr, upsert)->
-	paramName= part.slice 1
-	throw "Please use \"app.param(...)\" method to define path-parameter: #{paramName}" unless _has paramMap, paramName
-	paramRegex= paramMap[paramName][0]
+_resolveNodeInArray= (paramName, param, arr, upsert)->
+	paramRegex= param[0]
 	len= arr.length
 	i= 0
 	while i<len
@@ -33,7 +32,7 @@ _resolveNodeInArray= (part, paramMap, arr, upsert)->
 
 ###* RESOLVE TREE NODE ###
 ROUTE_ILLEGAL_PATH_REGEX= /#|[^\/]\?/
-_resolveTreeNode= (app, path)->
+_resolveTreeNode= (app, path, currentNodes)->
 	# Check path
 	throw 'Expected path to be string' unless typeof path is 'string'
 	throw "Illegal path: #{path}" if ROUTE_ILLEGAL_PATH_REGEX.test(path)
@@ -43,95 +42,131 @@ _resolveTreeNode= (app, path)->
 	routerIgnoreCase= settings.routerIgnoreCase
 	# path= path.toLowerCase() if settings.routerIgnoreCase
 	# start
-	currentNode= app._routes
 	avoidTrailingSlash= not settings.trailingSlash
 	paramMap= app._params
+	staticParamsMap= app._staticParams
 	parts= path.split '/'
 	partsLen= parts.length
-	nodePath= []
 	paramSet= new Set() # check params are not repeated
+	currentNodes= currentNodes.slice 0
+	currentNodes2= []
 	for part,i in parts
-		# wild card
-		if part is '*'
-			throw "Illegal use of wildcard: #{path}" unless i+1 is partsLen
-			node= currentNode.wildcard ?= do _createRouteNode
-			node.type= ROUTER_WILDCARD_NODE
-			node.param= '*'
-		# parametred wildcard
-		else if part.startsWith('*')
-			throw "Illegal use of wildcard: #{path}" unless i+1 is partsLen
-			currentNode.wildcards?= []
-			node= _resolveNodeInArray part, paramMap, currentNode.wildcards, yes
-			node.type= ROUTER_WILDCARD_PARAM_NODE
-		# parametred node
-		else if part.startsWith(':')
-			currentNode.params?= []
-			node= _resolveNodeInArray part, paramMap, currentNode.params, yes
-			node.type= ROUTER_PARAM_NODE
-		# static node
-		else
-			part= part.slice(1) if part.startsWith('?') # escaped static part
-			part= part.toLowerCase() if routerIgnoreCase
-			node= currentNode.static[part] ?= do _createRouteNode
-			node.type= ROUTER_STATIC_NODE
+		[currentNodes, currentNodes2]= [currentNodes2, currentNodes]
+		currentNodes.length= 0
+		for currentNode in currentNodes2
+			# wild card
+			if part is '*'
+				throw "Illegal use of wildcard: #{path}" unless i+1 is partsLen
+				node= currentNode.wildcard ?= do _createRouteNode
+				node.param= '*'
+				node.type= ROUTER_WILDCARD_NODE
+				node.parent= currentNode
+				currentNodes.push node
+			# parametred wildcard
+			else if part.startsWith('*')
+				throw "Illegal use of wildcard: #{path}" unless i+1 is partsLen
+				currentNode.wildcards?= []
+				paramName= part.slice 1
+				throw "Undefined parameter: #{paramName}" unless param= paramMap[paramName]
+				node= _resolveNodeInArray paramName, param, currentNode.wildcards, yes
+				node.type= ROUTER_WILDCARD_PARAM_NODE
+				node.parent= currentNode
+				currentNodes.push node
+			# parametred node
+			else if part.startsWith(':')
+				paramName= part.slice 1
+				# Static path param
+				if param= staticParamsMap[paramName]
+					for paramEl in param
+						paramEl= paramEl.toLowerCase() if routerIgnoreCase
+						unless node= currentNode.static[paramEl]
+							node= do _createRouteNode
+							currentNode.static[paramEl]= node
+							node.param= paramName
+							node.type= ROUTER_STATIC_PARAM_NODE
+							node.parent= currentNode
+						currentNodes.push node
+				# Path param
+				else if param= paramMap[paramName]
+					currentNode.params?= []
+					node= _resolveNodeInArray paramName, param, currentNode.params, yes
+					node.type= ROUTER_PARAM_NODE
+					node.parent= currentNode
+					currentNodes.push node
+				else
+					throw new Error "Undefined parameter: #{paramName}"
+			# static node
+			else
+				part= part.slice(1) if part.startsWith('?') # escaped static part
+				part= part.toLowerCase() if routerIgnoreCase
+				unless node= currentNode.static[part]
+					node= currentNode.static[part]= do _createRouteNode
+					node.type= ROUTER_STATIC_NODE
+					node.parent= currentNode
+				currentNodes.push node
 		# Check params not repeated
-		if vl= node.param
-			throw "Repeated param [#{vl}] in route: #{path}" if paramSet.has vl
+		if vl= currentNodes[0].param
+			throw new Error "Repeated param [#{vl}] in route: #{path}" if paramSet.has vl
 			paramSet.add vl
-		# Avoid trailing slash and multiple slashes
-		node.static['']= node if avoidTrailingSlash # Avoid trailing slash and multiple slashes
-		# stack
-		nodePath.push node
-		unless node.path
-			node.path?= nodePath.slice(0)
-			node.route= parts.slice(0, i+1).join('/')
-		# next
-		currentNode= node
-	return currentNode
+		# Finalize
+		for node in currentNodes
+			# Avoid trailing slash and multiple slashes
+			node.static['']= node if avoidTrailingSlash # Avoid trailing slash and multiple slashes
+			# stack
+			unless node.path
+				nodePath= node.parent.path.slice 0
+				nodePath.push node
+				node.path= nodePath
+				node.route= parts.slice(0, i+1).join('/')
+	return currentNodes
 
 # GET all nodes in a route
-_resolveRouteNodes= (app, path)->
+_resolveRouteNodes= (app, path, currentNodes)->
 	# Check path
 	throw 'Expected path to be string' unless typeof path is 'string'
 	throw "Illegal path: #{path}" if ROUTE_ILLEGAL_PATH_REGEX.test(path)
 	path= path.trim()
 	# path= '/'+path unless path.startsWith('/')
-	currentNode= app._routes
 	paramMap= app._params
 	routerIgnoreCase= app.settings.routerIgnoreCase
 	# parts= path.split /(?=\/)/
 	parts= path.split '/'
 	partsLen= parts.length
-	nodes= [currentNode]
-	found= yes
+	currentNodes= currentNodes.slice 0
+	currentNodes2= []
 	for part,i in parts
-		# wild card
-		if part is '*'
-			node= currentNode.wildcard
-		# parametred wildcard
-		else if part.startsWith('*') and currentNode.wildcards
-			node= _resolveNodeInArray part, paramMap, currentNode.wildcards, no
-		# parametred node
-		else if part.startsWith(':')
-			currentNode.params?= []
-			node= _resolveNodeInArray part, paramMap, currentNode.params, no
-		# static node
-		else
-			part= part.slice(1) if part.startsWith('?') # escaped static part
-			part= part.toLowerCase() if routerIgnoreCase
-			node= currentNode.static[part]
-		# finish
-		if node
-			# next
-			currentNode= node
-			nodes.push node
-		else
-			found= no
-			break
-	return
-		found: found
-		nodes: nodes
-		node: currentNode
+		[currentNodes, currentNodes2]= [currentNodes2, currentNodes]
+		currentNodes.length= 0
+		for currentNode in currentNodes2
+			# wild card
+			if part is '*'
+				currentNodes.push node if node= currentNode.wildcard
+			# parametred wildcard
+			else if part.startsWith('*') and currentNode.wildcards
+				paramName= part.slice 1
+				throw "Undefined parameter: #{paramName}" unless param= paramMap[paramName]
+				currentNodes.push node if node= _resolveNodeInArray paramName, param, currentNode.wildcards, no
+			# parametred node
+			else if part.startsWith(':')
+				paramName= part.slice 1
+				# Static path param
+				if param= staticParamsMap[paramName]
+					for paramEl in param
+						paramEl= paramEl.toLowerCase() if isntCaseSensitive
+						currentNodes.push node if node= currentNode.static[paramEl]
+				else if param= paramMap[paramName]
+					currentNode.params?= []
+					currentNodes.push node if node= _resolveNodeInArray paramName, param, currentNode.params, no
+				else
+					throw "Undefined parameter: #{paramName}"
+			# static node
+			else
+				part= part.slice(1) if part.startsWith('?') # escaped static part
+				part= part.toLowerCase() if routerIgnoreCase
+				currentNodes.push node if node= currentNode.static[part]
+			# finish
+			return currentNodes unless currentNodes.length
+	return currentNodes
 
 
 ###*
@@ -196,7 +231,7 @@ _resolveRouterPath= (app, method, path)->
 			part= parts[dept]
 			# switch nodetype
 			switch nodeType
-				when ROUTER_STATIC_NODE # Static
+				when ROUTER_STATIC_NODE, ROUTER_STATIC_PARAM_NODE # Static
 					# add alts
 					if currentNode.wildcard
 						nodeStack.push currentNode
@@ -218,7 +253,7 @@ _resolveRouterPath= (app, method, path)->
 				when ROUTER_PARAM_NODE # path param
 					params= currentNode.params
 					len= params.length
-					while nodeIndex<len
+					while nodeIndex < len
 						if params[nodeIndex].test part
 							# save current index
 							nodeStack.push currentNode
@@ -235,7 +270,7 @@ _resolveRouterPath= (app, method, path)->
 					params= currentNode.wildcards
 					len= params.length
 					pathEnd= parts.slice(dept).join('/')
-					while nodeIndex<len
+					while nodeIndex < len
 						if params[nodeIndex].test pathEnd
 							# go to sub route
 							currentNode= params[nodeIndex+2]
@@ -266,7 +301,7 @@ _resolveRouterPath= (app, method, path)->
 						errHandlers.push el for el in arr
 					# params
 					switch node.type
-						when ROUTER_PARAM_NODE
+						when ROUTER_PARAM_NODE, ROUTER_STATIC_PARAM_NODE
 							paramArr.push node.param, parts[j]
 						when ROUTER_WILDCARD_PARAM_NODE, ROUTER_WILDCARD_NODE
 							paramArr.push node.param, parts.slice(j).join('/')
@@ -279,5 +314,3 @@ _resolveRouterPath= (app, method, path)->
 		result.status= 500 # Internal error
 		result.handler= ROUTER_500
 	return result
-
-	

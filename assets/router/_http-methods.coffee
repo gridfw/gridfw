@@ -12,31 +12,43 @@ post:	(route, handler)-> @add 'POST', route, handler
  * 	app.add('/a/b', app2) # Add all routes from and other app under route "/a/b/"
 ###
 add: (methodName, route, handler)->
-	try
-		throw 'Illegal arguments' unless arguments.length is 3
-		if _isArray methodName
-			for el in methodName
-				@add el, route, handler
-			return this # chain
-		if _isArray route
-			for el in route
-				@add methodName, el, handler
-			return this # chain
-		# check handler
-		throw "handler expected: async function(ctx){...}. received: #{handler}" unless (typeof handler is 'function') and (handler.length in [1,0])
-		# check methodName
-		throw "Usupported http method: #{methodName}. Accepted are: #{HTTP_METHODS.join ', '}, ALL" unless (typeof methodName is 'string') and (((methodName= methodName.toUpperCase()) in HTTP_METHODS) or methodName is 'all')
-		# Resolve route
-		node= _resolveTreeNode this, route
-		node[methodName]= handler
-		# Link HEAD method to GET when missing
-		node.HEAD= handler if (methodName is 'GET') and not node.HEAD
-		# reload caches
-		@clearRouterCache()
-		this # chain
-	catch err
-		err= new Error "Add route>> #{err}\n#{route}" if typeof err is 'string'
-		throw err
+	throw new Error 'Illegal arguments' unless arguments.length is 3
+	@_add methodName, route, handler, [@_routes]
+	this # chain
+_add: (methodName, route, handler, currentNodes)->
+	# Flatten methodName
+	if _isArray methodName
+		@_add el, route, handler, currentNodes for el in methodName
+		return
+	# Flatten route
+	if _isArray route
+		@_add methodName, el, handler, currentNodes for el in route
+		return
+	# Logic
+	throw new Error "Expected route to be string" unless typeof route is 'string'
+	throw new Error "Expected http method to be string" unless typeof methodName is 'string'
+	methodName= methodName.toUpperCase()
+	throw new Error "Illegal HTTP method: #{methodName}. Expected: #{HTTP_METHODS.join ', '}, ALL" unless (methodName in HTTP_METHODS) or methodName is 'ALL'
+	throw new Error "handler expected: async function(ctx){...}. received: #{handler}" unless (typeof handler is 'function') and (handler.length in [1,0])
+	# Resolve route
+	nodes= _resolveTreeNode this, route, currentNodes
+	switch methodName
+		when 'HEAD'
+			for node in nodes
+				throw new Error "Controller <HTTP.HEAD> already set at: #{node.route}" if node.HEAD and node.HEAD isnt node.GET
+				node.HEAD= handler
+		when 'GET'
+			for node in nodes
+				throw new Error "Controller <HTTP.GET> already set at: #{node.route}" if node.GET
+				node.GET= handler
+				node.HEAD?= handler
+		else
+			for node in nodes
+				throw new Error "Controller <HTTP.#{methodName}> already set at: #{node.route}" if node[methodName]
+				node[methodName]= handler
+	# reload caches
+	@clearRouterCache()
+	return
 ###*
  * Remove http route
  * @example
@@ -53,13 +65,13 @@ remove: (methodName, route, handler)->
 			throw 'inimplemented: regenerate tree'
 		# remove method
 		else if len in [2, 3]
-			result= _resolveRouteNodes this, route
-			node= result.node
-			if result.found and ((len is 2) or (node[methodName] is handler))
-				# remvoe HEAD handler if reflect of GET handler
-				node.HEAD= null if methodName is 'GET' and node.GET is node.HEAD
-				# remove handler
-				node[methodName]= null
+			nodes= _resolveRouteNodes this, route, [@_routes]
+			for node in nodes
+				if (len is 2) or (node[methodName] is handler)
+					# remvoe HEAD handler if reflect of GET handler
+					node.HEAD= null if methodName is 'GET' and node.GET is node.HEAD
+					# remove handler
+					node[methodName]= null
 		# Illegal
 		else
 			throw 'Illegal arguments'
@@ -67,7 +79,7 @@ remove: (methodName, route, handler)->
 	catch err
 		err= "Remove route>> #{err}" if typeof err is 'string'
 		throw err
-	
+
 ###*
  * Add route using builder
 ###
