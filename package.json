@@ -1,6 +1,6 @@
 {
   "name": "gridfw",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "HTTP and websocket fast nodejs framework",
   "main": "build/index.js",
   "scripts": {
