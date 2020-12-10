@@ -133,6 +133,11 @@ sendFileBuffer: (buffer, options)->
 		maxAge= options.maxAge
 		maxAge= ~~(MS(maxAge)/1000) if typeof maxAge is 'string'
 		@setHeader 'Cache-Control', "public, max-age: #{maxAge}"
+	# charset
+	@encoding= null # prevent sending encoding (to prevent interpreted as text)
+	unless @contentType
+		@contentType= MimeType.lookup options.fileName if options.fileName
+	# Send
 	@send buffer
 
 ###*
@@ -202,10 +207,18 @@ send: (data)->
 			# populate Content-Length
 			@setHeader 'Content-Length', @contentLength = data.length
 			# set as header
-			@setHeader 'Content-Type', if contentType then "#{contentType}; charset=#{encoding}" else 'application/octet-stream'
+			contentType?= 'application/octet-stream'
+
+			@setHeader 'Content-Type', if encoding then "#{contentType}; charset=#{encoding}" else contentType
 
 	# send
 	if req.method is 'HEAD'
 		return @end()
 	else
 		return @end data, encoding
+
+
+# Custom http headers
+setContentDisposition: (fileName, options)->
+	@setHeader 'Content-Disposition', ContentDisposition (fileName or 'untitled'), options
+	this # chain

@@ -79,7 +79,10 @@ _resolveTreeNode= (app, path, currentNodes)->
 				if param= staticParamsMap[paramName]
 					for paramEl in param
 						paramEl= paramEl.toLowerCase() if routerIgnoreCase
-						unless node= currentNode.static[paramEl]
+						if node= currentNode.static[paramEl]
+							node.type= ROUTER_STATIC_PARAM_NODE # if this node is alreay a static, convert it to static param
+							node.param= paramName
+						else
 							node= do _createRouteNode
 							currentNode.static[paramEl]= node
 							node.param= paramName
