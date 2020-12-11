@@ -24,5 +24,5 @@ getLocale: (locale)->
 	fileName= @_i18nPaths[locale.toLowerCase()]
 	throw new GError 404, "Missing locale: #{locale}", null unless fileName
 	return @_i18nCache.get fileName # Load JS file from cache or file
-	
 
+hasLocale: (locale)-> !!@_i18nPaths[locale.toLowerCase()]
