@@ -65,3 +65,4 @@ build/*
 config/build/*
 gulp-file.tmp.*
 back/
+gulp-file.js

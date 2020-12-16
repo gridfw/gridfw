@@ -36,7 +36,7 @@ range: (size, options) ->
  * @optional @param {Object} options.limits - @see busboy limits
  * @optional @param {[type]} options.type - mimetype or list of mimetypes of uploaded data @default: undefined: all types are accepted
  * @optional @param {function} options.progress - Callback(chunkBytes, receivedBytes, totalBytes) for upload progress
- * 
+ *
  * @optional @param {function} options.onFile - Callback(filename, fileStream, fieldname, encoding, mimetype) add custom file upload behaviour and returns the path to that file (or any string)
  * @optional @param {function} options.filePath - Callback(filename, fieldname, mimetype) set target path to the uploaded file
  * @optional @param {Array<String>} options.extensions - List of accepted file extensions
@@ -44,7 +44,7 @@ range: (size, options) ->
  * @optional @param {Array<String>} options.fileFields - list of accepted fields to contain files
  *
  * @optional @param {Boolean} parse - do parse JSON and XML. Save as file otherwise
- * 
+ *
 ###
 upload: do ->
 	###* create stream ###
@@ -348,5 +348,8 @@ upload: do ->
 					_uploadRaw this, options, limits, settings, resolve, reject
 			return
 
-
-
+# Const
+JSON: 'application/json'
+XML: 'application/xml'
+MULTIPART: 'multipart/form-data'
+URL_ENCODED: 'application/x-www-form-urlencoded'
