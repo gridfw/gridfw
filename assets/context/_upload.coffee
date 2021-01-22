@@ -186,13 +186,11 @@ upload: do ->
 				# save file stream
 				files.push file
 				# process
-				if onFile
-					fPath = onFile filename, file, fieldname, encoding, mimetype
+				if onFile and (fPath = onFile filename, file, fieldname, encoding, mimetype)
 					throw "Options.onFile expected to return a file path" unless typeof fPath is 'string'
 				else
 					# file path
-					if filePath
-						fPath = filePath filename, fieldname, mimetype
+					if filePath and (fPath = filePath filename, fieldname, mimetype)
 						throw "Options.filePath expected to return a file path" unless typeof fPath is 'string'
 					else
 						# check extension

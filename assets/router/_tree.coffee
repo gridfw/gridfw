@@ -47,7 +47,7 @@ _resolveTreeNode= (app, path, currentNodes)->
 	staticParamsMap= app._staticParams
 	parts= path.split '/'
 	partsLen= parts.length
-	paramSet= new Set() # check params are not repeated
+	# paramSet= new Set() # check params are not repeated
 	currentNodes= currentNodes.slice 0
 	currentNodes2= []
 	for part,i in parts
@@ -108,9 +108,9 @@ _resolveTreeNode= (app, path, currentNodes)->
 					node.parent= currentNode
 				currentNodes.push node
 		# Check params not repeated
-		if vl= currentNodes[0].param
-			throw new Error "Repeated param [#{vl}] in route: #{path}" if paramSet.has vl
-			paramSet.add vl
+		# if vl= currentNodes[0].param
+		# 	throw new Error "Repeated param [#{vl}] in route: #{path}" if paramSet.has vl
+		# 	paramSet.add vl
 		# Finalize
 		for node in currentNodes
 			# Avoid trailing slash and multiple slashes
