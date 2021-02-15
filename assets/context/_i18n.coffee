@@ -12,6 +12,7 @@ setLocale: (locale)->
 	map= await @app.getLocale locale
 	@i18n= map
 	@locale= locale
+	@locals.i18n= map
 	return map
 
 ###*
