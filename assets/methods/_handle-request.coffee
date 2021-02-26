@@ -65,7 +65,7 @@ handle: do ->
 					catch e
 						err= e
 			throw err if err
-		
+
 		# send retourned value
 		unless ctx.finished
 			if cntrlResponse? and (cntrlResponse isnt ctx) or (cntrlResponse= ctx.result)
@@ -105,10 +105,11 @@ handle: do ->
 			i= url.indexOf '?'
 			if ~i
 				pathname= url.substr(0,i)
-				ctx.search= rawQuery= url.substr(i+1)
-				ctx.query= URLQueryParser.parse rawQuery
+				ctx.search= url.substr(i)
+				ctx.query= URLQueryParser.parse url.substr(i+1)
 			else
 				pathname= url
+				ctx.search= ''
 				ctx.query= {}
 			# Set to lowercase if case insensitive path
 			pathname= pathname.toLowerCase() if settings.routerIgnoreCase
@@ -148,4 +149,3 @@ handle: do ->
 				ctx.warn 'REQUEST-HANDLER', "Request leaved open: #{req.url}"
 				await ctx.end()
 		return
-	
