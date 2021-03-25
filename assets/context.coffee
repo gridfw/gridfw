@@ -8,6 +8,7 @@ EncodeUrl	= require 'encodeurl'
 Path		= require 'path'
 MzFs		= require 'mz/fs'
 Fs			= require 'fs'
+Stream		= require 'stream'
 
 ContentTypeParse = require('content-type').parse
 proxyaddr  = require 'proxy-addr'

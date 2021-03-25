@@ -38,7 +38,6 @@ range: (size, options) ->
  * @optional @param {function} options.progress - Callback(chunkBytes, receivedBytes, totalBytes) for upload progress
  *
  * @optional @param {function} options.onFile - Callback(filename, fileStream, fieldname, encoding, mimetype) add custom file upload behaviour and returns the path to that file (or any string)
- * @optional @param {function} options.filePath - Callback(filename, fieldname, mimetype) set target path to the uploaded file
  * @optional @param {Array<String>} options.extensions - List of accepted file extensions
  * @optional @param {Boolean} options.keepExtension - do not change file extension to ".tmp"
  * @optional @param {Array<String>} options.fileFields - list of accepted fields to contain files
@@ -103,10 +102,10 @@ upload: do ->
 	TMP_FILE_MAX_LOOP = 1000
 	_getTmpFileName = (dir, ext)->
 		i= 0
-		tmpf= "#{process.pid}-#{Date.now().toString(36)}"
+		tmpf= "#{process.pid.toString(32)}-#{Date.now().toString(32)}"
 		loop
 			try
-				fPath = Path.join dir, "#{tmpf}-#{i.toString(36)}#{ext}"
+				fPath = Path.join dir, "#{tmpf}-#{i.toString(32)}#{ext}"
 				fd= await MzFs.open fPath, 'wx+', 0o600
 				await MzFs.close fd
 				return fPath
@@ -114,6 +113,70 @@ upload: do ->
 				throw err unless err.code is 'EEXIST'
 			throw new Error "Fail to create file, loop out #{TMP_FILE_MAX_LOOP}" if i > TMP_FILE_MAX_LOOP
 		return
+	###* Create file upload callback ###
+	_onFileUploadWrapper= (options, uploadDir, errorHandle)->
+		{keepExtension}= options
+		if onFile= options.onFile
+			throw new Error "Expected 'options.onFile' as function" unless typeof onFile is 'function'
+			resultCb= (filename, file, fieldname, encoding, mimetype)->
+				try
+					r= await onFile filename, file, fieldname, encoding, mimetype
+					if typeof r is 'string'
+						switch r.charAt(0)
+							when '/' # Abs path
+								fpath= r
+							when '.' # change extname
+								fPath = await _getTmpFileName uploadDir, r
+								tmpPath= fPath
+							else
+								throw new Error "Illegal return value: #{r}"
+						fStream= Fs.createWriteStream fPath
+					else if r instanceof Stream.Writable
+						fStream= r
+					else if typeof r is 'object'
+						return {result: r}
+					# Pipe stream
+					result=
+						name:		filename
+						encoding:	encoding
+						mimetype:	mimetype
+						size:		0
+						path:		fPath
+					# Calc file size
+					file.on 'data', (data)->
+						result.size+= data.length
+						return
+					file.pipe fStream
+				catch err
+					errorHandle err
+				return {result, tmpPath}
+		else
+			fileExtensions= options.fileExtensions
+			resultCb= (filename, file, fieldname, encoding, mimetype)->
+				try
+					# check extension
+					ext= Path.extname(filename).toLowerCase()
+					if fileExtensions
+						throw "Rejected extension: [#{ext}], accepted are: #{fileExtensions.join ','}" if ext not in fileExtensions
+					fPath = await _getTmpFileName uploadDir, if keepExtension then ext else '.tmp'
+					# Result
+					result=
+						name:		filename
+						encoding:	encoding
+						mimetype:	mimetype
+						size:		0
+						path:		fPath
+					# Calc file size
+					file.on 'data', (data)->
+						result.size+= data.length
+						return
+					# pipe stream
+					file.pipe Fs.createWriteStream fPath
+				catch err
+					errorHandle err
+				return {result, tmpPath: fPath}
+		# Wrap
+		return resultCb
 	###* UPLOAD FORM URL ENCODED AND MULTIPART DATA ###
 	_addField= (result, fieldname, value)->
 		if vl= result[fieldname]
@@ -152,6 +215,8 @@ upload: do ->
 			# reject
 			reject err
 			return
+		# when receive files
+		onFile = _onFileUploadWrapper options, uploadDir, errorHandle
 		# on finish
 		busboy.on 'finish', ->
 			clearTimeout uptimeout
@@ -170,12 +235,8 @@ upload: do ->
 			catch err
 				errorHandle err
 			return
-		# when receive files
-		onFile = options.onFile
-		filePath= options.filePath
+		
 		# file options
-		fileExtensions= options.extensions
-		keepExtension= options.keepExtension or false
 		fileFields= options.fileFields
 		# on file
 		busboy.on 'file', (fieldname, file, filename, encoding, mimetype) ->
@@ -186,28 +247,11 @@ upload: do ->
 				# save file stream
 				files.push file
 				# process
-				if onFile and (fPath = onFile filename, file, fieldname, encoding, mimetype)
-					throw "Options.onFile expected to return a file path" unless typeof fPath is 'string'
-				else
-					# file path
-					if filePath and (fPath = filePath filename, fieldname, mimetype)
-						throw "Options.filePath expected to return a file path" unless typeof fPath is 'string'
-					else
-						# check extension
-						ext= Path.extname(filename).toLowerCase()
-						if fileExtensions
-							throw "Rejected extension: [#{ext}], accepted are: #{fileExtensions.join ','}" if ext not in fileExtensions
-						fPath = await _getTmpFileName uploadDir, if keepExtension then ext else '.tmp'
-						# add to tmp files array
-						result._tmpFiles.push fPath
-					# pipe stream
-					file.pipe Fs.createWriteStream fPath
+				r= await onFile filename, file, fieldname, encoding, mimetype
+				result._tmpFiles.push tmpPath if tmpPath= r.tmpPath
 				# create file descriptor
-				_addField resultData, fieldname,
-					path:  fPath
-					name:  filename
-					encoding:  encoding
-					mimetype:  mimetype
+				if r= r.result
+					_addField resultData, fieldname, r
 			catch err
 				err= new Error err if typeof err is 'string'
 				errorHandle err
@@ -258,42 +302,32 @@ upload: do ->
 	_uploadRaw= (ctx, options, limits, settings, resolve, reject)->
 		try
 			# init
-			filePath= options.filePath
-			onFile = options.onFile
 			req = ctx.req
 			uploadDir= options.dir or settings.upload_dir
 			# stream
 			stream = createStream req
 			# create file descriptor
-			result =
-				path: null
-				name: 'untitled.tmp'
-				encoding: null
-				mimetype: null
+			result=
+				data:	undefined
+				removeTmpFiles: _formDataRemoveFiles
+				clear: _formDataRemoveFiles
+				_tmpFiles: []
 			# stream end
 			stream.on 'end', ->
 				resolve result
 				return
 			# process
-			if onFile
-				fPath = onFile result.name, stream, null, result.encoding, result.mimetype
-				throw new Error "Options.onFile expected to return a file path" unless typeof fPath is 'string'
-			else
-				# file path
-				if filePath
-					fPath = filePath result.name
-					throw new Error "Options.filePath expected to return a file path" unless typeof fPath is 'string'
-				else
-					fPath = await _getTmpFileName uploadDir, '.tmp'
-				# pipe stream
-				stream.pipe Fs.createWriteStream fPath
-			# create file descriptor
-			result.path= fPath
+			errorHandle= (err)->
+				reject err
+				stream.resume() if stream
+				return
+			onFile= _onFileUploadWrapper options, uploadDir, errorHandle
+			# process
+			r= await onFile 'untitled.tmp', stream, undefined, undefined, undefined
+			result._tmpFiles.push tmpPath if tmpPath= r.tmpPath
+			result.data= r.result
 			# timeout
-			uptimeout = setTimeout (->
-				stream.resume()
-				reject 'upload timeout'
-			), options.timeout or settings.upload_timeout
+			uptimeout = setTimeout errorHandle.bind(null, 'upload timeout'), options.timeout or settings.upload_timeout
 		catch err
 			reject err
 			stream.resume() if stream
@@ -310,7 +344,7 @@ upload: do ->
 			options?= {}
 			# Limits
 			if options.limits
-				limits= _assign {}, options.limits, settings.upload_limits
+				limits= _assign {}, settings.upload_limits, options.limits
 			else
 				limits= settings.upload_limits
 			# body size limit

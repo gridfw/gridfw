@@ -538,6 +538,13 @@ try{
 			extensions: ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.gif', '.svg'] // Accepted file extensions (prefixed with ".")
 			keepExtension: true	// keep extensions when saving as tmp file, this will help to do operation on the tmp file like image crop
 		}
+		/**
+		 * Callback when file found
+		 * @return {String} [Absolute Path] Target file Path
+		 * @reutrn {String} [extname] Change the extension of the temp file
+		 * @return {Object} [Result] return an object like: {name, size, path} or buffer. user has to stream file himself
+		 */
+		onFile: function(fileName, fileStream, fieldName, encoding, mimetype){}
 	});
 
 	// Multipart/data file fields will contains the following
