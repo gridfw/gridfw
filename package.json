@@ -1,8 +1,9 @@
 {
   "name": "gridfw",
-  "version": "2.1.0",
-  "description": "HTTP and websocket fast nodejs framework",
+  "version": "3.0.0",
+  "description": "HTTP2 and websocket fast nodejs framework",
   "main": "build/index.js",
+  "type": "module",
   "scripts": {
     "compile": "gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,15 +14,15 @@
   },
   "keywords": [
     "nodejs",
-    "http",
+    "http2",
     "https",
     "websocket",
     "routing",
     "framework"
   ],
   "author": {
-    "name": "coredigix",
-    "email": "contact@coredigix.com",
+    "name": "Khalid RAFIK",
+    "email": "khalid.rfk@gmail.com",
     "url": "https://coredigix.com"
   },
   "license": "MIT",
@@ -29,48 +30,16 @@
     "url": "https://github.com/gridfw/gridfw/issues"
   },
   "homepage": "https://github.com/gridfw/gridfw#readme",
-  "dependencies": {
-    "accepts": "^1.3.7",
-    "busboy": "^0.3.1",
-    "chalk": "^3.0.0",
-    "content-disposition": "^0.5.3",
-    "content-type": "^1.0.4",
-    "cookie": "^0.4.1",
-    "create-symlink": "^1.0.0",
-    "crypto-js": "^4.0.0",
-    "encodeurl": "^1.0.2",
-    "etag": "^1.8.1",
-    "fast-decode-uri-component": "^1.0.1",
-    "fresh": "^0.5.2",
-    "iconv-lite": "^0.5.1",
-    "lru-ttl-cache": "^1.2.4",
-    "mime-types": "^2.1.27",
-    "module-cache": "^1.0.4",
-    "mz": "^2.7.0",
-    "nvm": "0.0.4",
-    "on-finished": "^2.3.0",
-    "pretty-format": "^25.5.0",
-    "proxy-addr": "^2.0.6",
-    "pug": "^2.0.4",
-    "querystringparser": "^0.1.1",
-    "range-parser": "^1.2.1",
-    "raw-body": "^2.4.1",
-    "safe-buffer": "^5.2.1",
-    "send": "^0.16.2",
-    "xml-js": "^1.6.11",
-    "zlib": "^1.0.5"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "cli-table": "^0.3.1",
+    "@types/gulp": "^4.0.8",
+    "@types/gulp-sourcemaps": "0.0.34",
+    "@types/node": "^14.14.41",
     "gulp": "^4.0.2",
-    "gulp-chug": "^0.5.1",
-    "gulp-coffeescript": "0.0.15",
-    "gulp-ejs": "^5.1.0",
-    "gulp-error-handle": "^1.0.1",
-    "gulp-include": "^2.4.1",
-    "gulp-rename": "^1.4.0",
-    "gulp-template": "^5.0.0",
-    "gulp-terser": "^1.2.0",
-    "gulp-util": "^3.0.8"
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "json5": "^2.2.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.2"
   }
 }

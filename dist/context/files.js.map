@@ -1,0 +1,1 @@
+{"version":3,"sources":["context/files.ts"],"names":[],"mappings":"AAAA,MAAM,OAAO,OAAO;IACnB,0BAA0B;IAC1B,QAAQ;QACP,MAAM;QACN,OAAO,IAAI,CAAC;IACb,CAAC;CACD","file":"files.js","sourcesContent":["export class Context{\r\n\t/** Send file to client */\r\n\tsendFile(){\r\n\t\t//TODO\r\n\t\treturn this;\r\n\t}\r\n}"]}
